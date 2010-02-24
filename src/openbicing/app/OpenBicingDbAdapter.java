@@ -152,6 +152,6 @@ public class OpenBicingDbAdapter {
     }
     
     public Cursor fetchAllStations() {
-        return mDb.query(STATIONS_TABLE, new String[] {KEY_ROWID, KEY_NAME, KEY_X, KEY_Y, KEY_BIKE, KEY_FREE}, null, null, null, null, KEY_NAME);
+        return mDb.query(STATIONS_TABLE, new String[] {KEY_ROWID, KEY_NAME, KEY_X, KEY_Y, KEY_BIKE, KEY_FREE, KEY_TIMESTAMP}, null, null, null, null, KEY_NAME);
     }
 }

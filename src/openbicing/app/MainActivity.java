@@ -46,14 +46,18 @@ public class MainActivity extends MapActivity{
     	Drawable drawable = this.getResources().getDrawable(R.drawable.green_arrow);
     	StationOverlayList stations = new StationOverlayList(this,mapOverlays);
     	while (stationsCursor.moveToNext()){
-    		int lat = Integer.parseInt(stationsCursor.getString(3));
-    		int lng = Integer.parseInt(stationsCursor.getString(2));
+    		// This should be integers in the database.. :/
     		
+    		int lat = Integer.parseInt(stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_Y)));
+    		int lng = Integer.parseInt(stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_X)));
+    		
+    		int bikes = stationsCursor.getInt(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_BIKE));
+    	    int free = stationsCursor.getInt(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_FREE));
+    	    String timestamp = stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_TIMESTAMP));
+    	    int id = stationsCursor.getInt(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_NAME));
     	    GeoPoint point = new GeoPoint(lat, lng);
-    	    int bikes = stationsCursor.getInt(4);
-    	    int free = stationsCursor.getInt(5);
-    	    String timestamp = "NOW";
-    	    int id = stationsCursor.getInt(1);
+    	    
+    	    
     	    StationOverlay station = new StationOverlay(point,this,bikes,free,timestamp,id);
     	    stations.addStationOverlay(station);
     	}
