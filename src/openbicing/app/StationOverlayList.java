@@ -32,6 +32,7 @@ public class StationOverlayList {
 	public void updateStationOverlay(int location){
 		StationOverlay station = (StationOverlay) this.mapOverlays.get(location);
 		station.update();
-		this.mapOverlays.set(location, station);
+                //TODO: Roc Boronat: He comentat la línia de sota, ja que en teoria sobra. Provar si funciona! :)
+		//this.mapOverlays.set(location, station);
 	}
 }
