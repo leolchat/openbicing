@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
@@ -18,7 +19,7 @@ public class StationOverlay extends Overlay {
 	private int free;
 	private String timestamp;
 	private int status;
-	private int id;
+	private String id;
 	private Context context;
 	private Drawable icon;
 	private GeoPoint point;
@@ -34,7 +35,7 @@ public class StationOverlay extends Overlay {
 	private static final int YELLOW_MARKER = R.drawable.bullet_green;
 	private static final int GREEN_MARKER = R.drawable.bullet_green;
 	
-	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, int id) {
+	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, String id) {
 		this.point = point;
 		this.bikes = bikes;
 		this.free = free;
@@ -99,12 +100,18 @@ public class StationOverlay extends Overlay {
 	@Override
 	public boolean onTap(GeoPoint p, MapView mapView) {
 		// TODO Auto-generated method stub
+		
+		if ((p.getLatitudeE6()<=this.point.getLatitudeE6()+500 && p.getLatitudeE6()>=this.point.getLatitudeE6()-500) 
+			&&
+			(p.getLongitudeE6()<=this.point.getLongitudeE6()+500 && p.getLongitudeE6()>=this.point.getLongitudeE6()-500))
+			Log.i("openBicing",this.id);
 		return super.onTap(p, mapView);
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent e, MapView mapView) {
 		// TODO Auto-generated method stub
+		
 		return super.onTouchEvent(e, mapView);
 	}
 

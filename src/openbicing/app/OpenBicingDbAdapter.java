@@ -18,6 +18,8 @@ package openbicing.app;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.google.android.maps.GeoPoint;
+
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,7 +40,7 @@ import android.util.Log;
  * of using a collection of inner classes (which is less scalable and not
  * recommended).
  */
-public class OpenBicingDbAdapter {
+public class OpenBicingDbAdapter implements Runnable{
 
     
 	public static final String KEY_ROWID = "_id";
@@ -57,6 +59,8 @@ public class OpenBicingDbAdapter {
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     
+    
+    private JSONArray lastJSONInfo;
     private RESTHelper mRESTHelper;
     
     /**
@@ -123,15 +127,34 @@ public class OpenBicingDbAdapter {
         mDbHelper.close();
     }
     
-    public void syncStations() throws Exception{
+    public void syncStations(StationOverlayList stationsMemoryList) throws Exception{
     	String listStations = mRESTHelper.restGET(STATIONS_URL);
     	JSONArray stations = new JSONArray(listStations);
+    	this.lastJSONInfo = stations;
     	JSONObject station = null;
-    	mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
+    	for (int i = 0; i<stations.length(); i++){
+    		station = stations.getJSONObject(i);
+    		int lat = Integer.parseInt(station.getString("y"));
+    		int lng = Integer.parseInt(station.getString("x"));
+    		  		
+    		int bikes = station.getInt("bikes");
+    		int free = station.getInt("free");
+    		String timestamp = station.getString("timestamp");
+    		String id = station.getString("name");
+    		GeoPoint point = new GeoPoint(lat, lng);
+
+    		StationOverlay memoryStation = new StationOverlay(point,mCtx,bikes,free,timestamp,id);
+    		
+    	    stationsMemoryList.addStationOverlay(memoryStation);
+    	}
+    	
+    	
+    	//At this point we have returned IMPORTANT info!!! so we go to runnable..
+    	/*mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
     	for (int i = 0; i<stations.length(); i++){
     		station = stations.getJSONObject(i);
     		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
-    	}
+    	}*/
     }
     
     public long createStation(String name, String coordinates, String x, String y, Integer bike, Integer free, String timestamp){
@@ -146,12 +169,13 @@ public class OpenBicingDbAdapter {
     	return mDb.insert(STATIONS_TABLE, null, initialValues);
     }
     
-    
-    public void sync() throws Exception {
-    	this.syncStations();
-    }
-    
     public Cursor fetchAllStations() {
         return mDb.query(STATIONS_TABLE, new String[] {KEY_ROWID, KEY_NAME, KEY_X, KEY_Y, KEY_BIKE, KEY_FREE, KEY_TIMESTAMP}, null, null, null, null, KEY_NAME);
     }
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
 }
