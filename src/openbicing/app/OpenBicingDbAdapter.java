@@ -60,7 +60,7 @@ public class OpenBicingDbAdapter implements Runnable{
     private SQLiteDatabase mDb;
     
     
-    private JSONArray lastJSONInfo;
+    private JSONArray lastJSONInfo = null;
     private RESTHelper mRESTHelper;
     
     /**
@@ -148,7 +148,8 @@ public class OpenBicingDbAdapter implements Runnable{
     	    stationsMemoryList.addStationOverlay(memoryStation);
     	}
     	
-    	
+    	Thread happyThread = new Thread(this);
+    	happyThread.start();
     	//At this point we have returned IMPORTANT info!!! so we go to runnable..
     	/*mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
     	for (int i = 0; i<stations.length(); i++){
@@ -166,6 +167,7 @@ public class OpenBicingDbAdapter implements Runnable{
     	initialValues.put(KEY_BIKE, bike);
     	initialValues.put(KEY_FREE, free);
     	initialValues.put(KEY_TIMESTAMP, timestamp);
+    	
     	return mDb.insert(STATIONS_TABLE, null, initialValues);
     }
     
@@ -176,6 +178,21 @@ public class OpenBicingDbAdapter implements Runnable{
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		
+		try{updateDBStations();}catch (Exception e){};
+	}
+	
+	
+	private void updateDBStations() throws Exception{
+		mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
+		if (lastJSONInfo!=null){
+			JSONObject station = null;
+			for (int i = 0; i<lastJSONInfo.length(); i++){
+	    		station = lastJSONInfo.getJSONObject(i);
+	    		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
+	    	}
+			Log.i("openBicing","I'm happily finished");
+		}else{
+			Log.i("openBicing","Shit men");
+		}
 	}
 }
