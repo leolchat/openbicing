@@ -128,7 +128,7 @@ public class OpenBicingDbAdapter implements Runnable{
     }
     
     public void syncStations(StationOverlayList stationsMemoryList) throws Exception{
-    	String listStations = mRESTHelper.restGET(STATIONS_URL);
+    	try {String listStations = mRESTHelper.restGET(STATIONS_URL);
     	JSONArray stations = new JSONArray(listStations);
     	this.lastJSONInfo = stations;
     	JSONObject station = null;
@@ -149,13 +149,37 @@ public class OpenBicingDbAdapter implements Runnable{
     	}
     	
     	Thread happyThread = new Thread(this);
-    	happyThread.start();
+    	happyThread.start();}catch (Exception e){
+    		//take the info from the database :'(
+    		populateFromDatabase(stationsMemoryList);
+    	}
     	//At this point we have returned IMPORTANT info!!! so we go to runnable..
     	/*mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
     	for (int i = 0; i<stations.length(); i++){
     		station = stations.getJSONObject(i);
     		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
     	}*/
+    }
+    
+    public void populateFromDatabase(StationOverlayList stationsList){
+    	Cursor stationsCursor = fetchAllStations();
+    	while (stationsCursor.moveToNext()){
+    		// This should be integers in the database.. :/
+    		
+    		int lat = Integer.parseInt(stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_Y)));
+    		int lng = Integer.parseInt(stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_X)));
+    		
+    		int bikes = stationsCursor.getInt(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_BIKE));
+    	    int free = stationsCursor.getInt(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_FREE));
+    	    String timestamp = stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_TIMESTAMP));
+    	    String id = stationsCursor.getString(stationsCursor.getColumnIndexOrThrow(OpenBicingDbAdapter.KEY_NAME));
+    	    GeoPoint point = new GeoPoint(lat, lng);
+    	    
+    	    
+    	    StationOverlay station = new StationOverlay(point,mCtx,bikes,free,timestamp,id);
+    	    stationsList.addStationOverlay(station);
+    	}
+    	
     }
     
     public long createStation(String name, String coordinates, String x, String y, Integer bike, Integer free, String timestamp){
