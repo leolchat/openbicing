@@ -15,10 +15,11 @@
 
 package openbicing.app;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import com.google.android.maps.GeoPoint;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -28,6 +29,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapView;
 
 
 /**
@@ -52,16 +56,24 @@ public class OpenBicingDbAdapter implements Runnable{
     public static final String KEY_FREE = "free";
     public static final String KEY_TIMESTAMP = "timestamp";
     
+    public static final Integer UPDATE_MAP_JSON = 0;
+    public static final Integer UPDATE_DATABASE = 1;
+    
     public static final String STATIONS_URL = "http://openbicing.appspot.com/stations.json";
     
-
+    private ProgressDialog dialog;
     private static final String TAG = "OpenBicingDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     
-    
+    private StationOverlayList stationsMemoryList;
     private JSONArray lastJSONInfo = null;
     private RESTHelper mRESTHelper;
+    
+    private MapView mapView;
+    
+    private Queue<Integer> toDo;
+    
     
     /**
      * Database creation sql statement
@@ -103,8 +115,11 @@ public class OpenBicingDbAdapter implements Runnable{
      * 
      * @param ctx the Context within which to work
      */
-    public OpenBicingDbAdapter(Context ctx) {
+    public OpenBicingDbAdapter(Context ctx, StationOverlayList stationsMemoryList, MapView mapView) {
+    	this.stationsMemoryList = stationsMemoryList;
         this.mCtx = ctx;
+        toDo = new LinkedList();
+        this.mapView = mapView;
     }
 
     /**
@@ -116,10 +131,10 @@ public class OpenBicingDbAdapter implements Runnable{
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
      */
-    public OpenBicingDbAdapter open() throws Exception {
+    public OpenBicingDbAdapter open(){
         mDbHelper = new DatabaseHelper(mCtx);
-        mDb = mDbHelper.getWritableDatabase();
         this.mRESTHelper = new RESTHelper(this.mCtx,false,null,null);
+        mDb = mDbHelper.getWritableDatabase();
         return this;
     }
     
@@ -127,11 +142,13 @@ public class OpenBicingDbAdapter implements Runnable{
         mDbHelper.close();
     }
     
-    public void syncStations(StationOverlayList stationsMemoryList) throws Exception{
-    	try {String listStations = mRESTHelper.restGET(STATIONS_URL);
+    
+    public void populateFromJSON() throws Exception{
+    	String listStations = mRESTHelper.restGET(STATIONS_URL);
     	JSONArray stations = new JSONArray(listStations);
     	this.lastJSONInfo = stations;
     	JSONObject station = null;
+    	stationsMemoryList.clear();
     	for (int i = 0; i<stations.length(); i++){
     		station = stations.getJSONObject(i);
     		int lat = Integer.parseInt(station.getString("y"));
@@ -147,21 +164,71 @@ public class OpenBicingDbAdapter implements Runnable{
     		
     	    stationsMemoryList.addStationOverlay(memoryStation);
     	}
-    	
-    	Thread happyThread = new Thread(this);
-    	happyThread.start();}catch (Exception e){
-    		//take the info from the database :'(
-    		populateFromDatabase(stationsMemoryList);
-    	}
-    	//At this point we have returned IMPORTANT info!!! so we go to runnable..
-    	/*mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
-    	for (int i = 0; i<stations.length(); i++){
-    		station = stations.getJSONObject(i);
-    		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
-    	}*/
+    	mapView.postInvalidate();
+    	toDo.add(UPDATE_DATABASE);
+    	if (dialog.isShowing())
+			dialog.dismiss();
     }
     
-    public void populateFromDatabase(StationOverlayList stationsList){
+    
+    public void syncStations() throws Exception{
+		    	Log.i("openBicing","Launching work thread..");
+		    	dialog = new ProgressDialog(mCtx);
+		    	dialog.setTitle("");
+		    	dialog.setMessage("Loading. Please wait...");
+		    	dialog.show();
+		    	toDo.add(UPDATE_MAP_JSON);
+		    	Thread happyThread = new Thread(this);
+		        happyThread.start();
+    }
+
+    
+    @Override
+	public void run() {
+		// TODO Auto-generated method stub
+		while (!toDo.isEmpty()){
+			Integer shit = (Integer) toDo.poll();
+			if(shit == UPDATE_MAP_JSON){
+				Log.i("openBicing","Updating JSON");
+				try{
+					populateFromJSON();
+				}catch (Exception e){
+					populateFromDatabase();
+				};
+			}else if (shit == UPDATE_DATABASE){
+				Log.i("openBicing","Updating Database");
+				try{
+					updateDBStations();
+				}catch (Exception e){
+					Log.i("openBicing","I dont know shit");
+				};
+			}
+		}
+		toDo.clear();
+	}
+	
+	
+	private void updateDBStations() throws Exception{
+			mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
+			if (lastJSONInfo!=null){
+				JSONObject station = null;
+				for (int i = 0; i<lastJSONInfo.length(); i++){
+		    		station = lastJSONInfo.getJSONObject(i);
+		    		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
+		    	}
+				Log.i("openBicing","I'm happily finished");
+			}else{
+				Log.i("openBicing","See?");
+			}
+	}
+	
+	public Cursor fetchAllStations() {
+        return mDb.query(STATIONS_TABLE, new String[] {KEY_ROWID, KEY_NAME, KEY_X, KEY_Y, KEY_BIKE, KEY_FREE, KEY_TIMESTAMP}, null, null, null, null, KEY_NAME);
+    }
+    
+    public void populateFromDatabase(){
+    	Log.i("openBicing","Shit there's no internet, trying to get database");
+    	stationsMemoryList.clear();
     	Cursor stationsCursor = fetchAllStations();
     	while (stationsCursor.moveToNext()){
     		// This should be integers in the database.. :/
@@ -177,9 +244,11 @@ public class OpenBicingDbAdapter implements Runnable{
     	    
     	    
     	    StationOverlay station = new StationOverlay(point,mCtx,bikes,free,timestamp,id);
-    	    stationsList.addStationOverlay(station);
+    	    stationsMemoryList.addStationOverlay(station);
     	}
-    	
+    	mapView.postInvalidate();
+    	if (dialog.isShowing())
+			dialog.dismiss();
     }
     
     public long createStation(String name, String coordinates, String x, String y, Integer bike, Integer free, String timestamp){
@@ -191,32 +260,6 @@ public class OpenBicingDbAdapter implements Runnable{
     	initialValues.put(KEY_BIKE, bike);
     	initialValues.put(KEY_FREE, free);
     	initialValues.put(KEY_TIMESTAMP, timestamp);
-    	
     	return mDb.insert(STATIONS_TABLE, null, initialValues);
     }
-    
-    public Cursor fetchAllStations() {
-        return mDb.query(STATIONS_TABLE, new String[] {KEY_ROWID, KEY_NAME, KEY_X, KEY_Y, KEY_BIKE, KEY_FREE, KEY_TIMESTAMP}, null, null, null, null, KEY_NAME);
-    }
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		try{updateDBStations();}catch (Exception e){};
-	}
-	
-	
-	private void updateDBStations() throws Exception{
-		mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
-		if (lastJSONInfo!=null){
-			JSONObject station = null;
-			for (int i = 0; i<lastJSONInfo.length(); i++){
-	    		station = lastJSONInfo.getJSONObject(i);
-	    		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
-	    	}
-			Log.i("openBicing","I'm happily finished");
-		}else{
-			Log.i("openBicing","Shit men");
-		}
-	}
 }

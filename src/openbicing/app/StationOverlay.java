@@ -1,5 +1,6 @@
 package openbicing.app;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -8,6 +9,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -21,20 +24,22 @@ public class StationOverlay extends Overlay {
 	private int status;
 	private String id;
 	private Context context;
-	private Drawable icon;
-	private GeoPoint point;
 	
+	private GeoPoint point;
+		
+	private static final int BLACK_STATE = 0;
 	private static final int RED_STATE = 1;
 	private static final int YELLOW_STATE = 2;
 	private static final int GREEN_STATE = 3;
 	
-	private static final int RED_STATE_MAX = 5;
-	private static final int YELLOW_STATE_MAX = 10;
+	private int radiusInPixels;
+	private int radiusInMeters = 50;
 	
-	private static final int RED_MARKER = R.drawable.bullet_green;
-	private static final int YELLOW_MARKER = R.drawable.bullet_green;
-	private static final int GREEN_MARKER = R.drawable.bullet_green;
+	private static final int BLACK_STATE_MAX = 0;
+	private static final int RED_STATE_MAX = 0;
+	private static final int YELLOW_STATE_MAX = 8;
 	
+		
 	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, String id) {
 		this.point = point;
 		this.bikes = bikes;
@@ -49,16 +54,12 @@ public class StationOverlay extends Overlay {
 		
 		if (this.bikes>YELLOW_STATE_MAX){
 			this.status = GREEN_STATE;
-			this.icon = this.context.getResources().getDrawable(GREEN_MARKER);
 		}
 		else if (this.bikes>RED_STATE_MAX){
 			this.status = YELLOW_STATE;
-			this.icon = this.context.getResources().getDrawable(YELLOW_MARKER);
-		}
-		else{
+	
+		}else
 			this.status = RED_STATE;
-			this.icon = this.context.getResources().getDrawable(RED_MARKER);
-		}
 	}
 	
 	public void update(){
@@ -66,7 +67,10 @@ public class StationOverlay extends Overlay {
 		this.updateStatus();
 	}
 
-
+	private void calculatePixelRadius(MapView mapView){
+		this.radiusInPixels = (int) mapView.getProjection().metersToEquatorPixels(this.radiusInMeters);
+	}
+	
 	@Override
 	public boolean draw(Canvas canvas, MapView mapView, boolean shadow,
 			long when) {
@@ -76,24 +80,29 @@ public class StationOverlay extends Overlay {
 
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
+		
+		calculatePixelRadius(mapView);
 		Projection astral = mapView.getProjection();
 		Point screenPixels = astral.toPixels(this.point, null);
-		RectF oval = new RectF(screenPixels.x-20,screenPixels.y-20,screenPixels.x+20,screenPixels.y+20);
+				
+		RectF oval = new RectF(screenPixels.x-this.radiusInPixels,screenPixels.y-this.radiusInPixels,screenPixels.x+this.radiusInPixels,screenPixels.y+this.radiusInPixels);
 		Paint paint = new Paint();
 		if (this.status == RED_STATE)
-			paint.setARGB(50,255,0,0);
+			paint.setARGB(75,240,35,17);
 		else if (this.status == YELLOW_STATE)
-			paint.setARGB(20,255,255,0);
-		else
-			paint.setARGB(20,0,255,0);
-		
+			paint.setARGB(75,255,210,72);
+		else if (this.status == GREEN_STATE)
+			paint.setARGB(75,168,255,87);
+		else if (this.status == BLACK_STATE)
+			paint.setARGB(75,0,0,0);
+				
 		Paint paint2 = new Paint();
 		paint2.set(paint);
-		paint2.setStrokeWidth(5);
-		paint2.setAlpha(255);
+		paint2.setStrokeWidth(4);
+		paint2.setAlpha(100);
 		paint2.setAntiAlias(true);
 		paint2.setStyle(Paint.Style.STROKE);
-		canvas.drawCircle(screenPixels.x, screenPixels.y, 20, paint2);
+		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels, paint2);
 		canvas.drawOval(oval,paint);
 	}
 
@@ -101,10 +110,23 @@ public class StationOverlay extends Overlay {
 	public boolean onTap(GeoPoint p, MapView mapView) {
 		// TODO Auto-generated method stub
 		
-		if ((p.getLatitudeE6()<=this.point.getLatitudeE6()+500 && p.getLatitudeE6()>=this.point.getLatitudeE6()-500) 
+		if ((p.getLatitudeE6()<=this.point.getLatitudeE6()+800 && p.getLatitudeE6()>=this.point.getLatitudeE6()-800) 
 			&&
-			(p.getLongitudeE6()<=this.point.getLongitudeE6()+500 && p.getLongitudeE6()>=this.point.getLongitudeE6()-500))
+			(p.getLongitudeE6()<=this.point.getLongitudeE6()+800 && p.getLongitudeE6()>=this.point.getLongitudeE6()-800)){
+			
+			Dialog dialog = new Dialog(context);
+
+			dialog.setContentView(R.layout.station);
+			dialog.setTitle(this.id);
+
+			TextView text = (TextView) dialog.findViewById(R.id.text);
+			text.setText("Bikes: "+this.bikes+" / Free Spaces: "+this.free+"\nLast Update (GMT): "+this.timestamp);
 			Log.i("openBicing",this.id);
+			dialog.setCancelable(true);
+			dialog.setCanceledOnTouchOutside(true);
+			dialog.show();
+		}
+			
 		return super.onTap(p, mapView);
 	}
 

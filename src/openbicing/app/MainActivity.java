@@ -4,13 +4,13 @@ import java.util.List;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ZoomButtonsController.OnZoomListener;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -24,9 +24,8 @@ public class MainActivity extends MapActivity{
 	private Cursor stationsCursor;
 	private MapView mapView;
 	public static final int MENU_ITEM_SYNC = Menu.FIRST;
-	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;
-	
-	
+	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;	
+	private StationOverlayList stations;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -34,17 +33,20 @@ public class MainActivity extends MapActivity{
 	    setContentView(R.layout.main);
 	    mapView = (MapView) findViewById(R.id.mapview);
 	    mapView.setBuiltInZoomControls(true);
-	    mDbHelper = new OpenBicingDbAdapter(this);
-        try{mDbHelper.open();}catch (Exception e){Log.i("openBicing",e.getLocalizedMessage()); e.printStackTrace();};
-        updateMap();
-	    fillData();
+	    List <Overlay> mapOverlays = mapView.getOverlays();
+	    stations = new StationOverlayList(this,mapOverlays);
+	    mDbHelper = new OpenBicingDbAdapter(this, stations, mapView);
+        mDbHelper.open();
+        fillData();
+        
 	}
 	
 	private void fillData() {
-		List <Overlay> mapOverlays = mapView.getOverlays();
-		mapOverlays.clear();
-		StationOverlayList stations = new StationOverlayList(this,mapOverlays);
-		try{mDbHelper.syncStations(stations);}catch (Exception e){Log.i("openBicing","You suck, men..");};
+		try{
+			mDbHelper.syncStations();
+		}catch (Exception e){
+			Log.i("openBicing","Error Updating?");
+		};
     }
 	
 	@Override
@@ -60,27 +62,14 @@ public class MainActivity extends MapActivity{
         // This is our one standard application action -- inserting a
         // new note into the list.
         menu.add(0, MENU_ITEM_SYNC, 0, R.string.menu_sync)
-                .setShortcut('3', 'a')
                 .setIcon(R.drawable.refresh);
         menu.add(0, MENU_ITEM_LOCATION, 0, R.string.menu_location)
-        	.setShortcut('3', 'a')
         	.setIcon(android.R.drawable.ic_menu_mylocation);
         return true;
     }
 	
 	public void updateMap(){
-		
-		
-		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Location mylocation = locationManager.getLastKnownLocation("network");
-        
-        Double lat = mylocation.getLatitude()*1E6;
-        Double lng = mylocation.getLongitude()*1E6;
-                    
-        GeoPoint point = new GeoPoint(lat.intValue(), lng.intValue());
-        MapController mapController = mapView.getController();
-        mapController.setZoom(18);
-        mapController.setCenter(point);
+		stations.updateHome();
 	}
 	
 	@Override
@@ -97,5 +86,4 @@ public class MainActivity extends MapActivity{
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

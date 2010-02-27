@@ -1,6 +1,5 @@
 package openbicing.app;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -11,15 +10,22 @@ public class StationOverlayList {
 	
 	private List <Overlay> mapOverlays;
 	private Context context;
+	private HomeOverlay hOverlay;
 	
 	public StationOverlayList (Context context, List <Overlay> mapOverlays) {
 		this.context = context; 
 		this.mapOverlays = mapOverlays;
+		hOverlay = new HomeOverlay(this.context);
+    	hOverlay.update();
 	}
 	
 	public void addStationOverlay(Overlay overlay) {
 		this.mapOverlays.add(overlay);
 	}
+	
+	public void addHome(){
+		mapOverlays.add(hOverlay);
+    }
 	
 	public void addStationOverlay(int location, Overlay overlay) {
 		this.mapOverlays.add(location, overlay);
@@ -34,5 +40,12 @@ public class StationOverlayList {
 		station.update();
                 //TODO: Roc Boronat: He comentat la línia de sota, ja que en teoria sobra. Provar si funciona! :)
 		//this.mapOverlays.set(location, station);
+	}
+	public void updateHome(){
+		hOverlay.update();
+	}
+	public void clear(){
+		mapOverlays.clear();
+		addHome();
 	}
 }
