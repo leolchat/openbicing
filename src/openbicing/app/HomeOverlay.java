@@ -1,15 +1,17 @@
 package openbicing.app;
 
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Paint.Cap;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
-import android.util.Log;
+import android.os.Bundle;
 import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
@@ -29,36 +31,70 @@ public class HomeOverlay extends Overlay {
 	private float centerYInPixels;
 	
 	private int status = 0;
+	
+	private float smallCircleX;
+	private float smallCircleY;
+	private float smallCircleRadius = 10;
+	
+	private float angle = 0;
 		
 	
 	public HomeOverlay(Context context){
 		this.context = context;
-		this.update();
-		
-		
+		LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
+		List <String> providers = locationManager.getProviders(true); 
+		for (int i = 0; i< providers.size(); i++){
+			locationManager.requestLocationUpdates(providers.get(i), 20000, 25, new LocationListener(){
+				@Override
+				public void onLocationChanged(Location location) {
+					// TODO Auto-generated method stub
+					update(location);
+				}
+
+				@Override
+				public void onProviderDisabled(String provider) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void onProviderEnabled(String provider) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void onStatusChanged(String provider, int status,
+						Bundle extras) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+			});
+		}
+		setLastKnownLocation();
 	}
 	
-	public void update(){
+	public void setLastKnownLocation(){
 		LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
-        Location mylocation = locationManager.getLastKnownLocation("network");
-        Double lat = mylocation.getLatitude()*1E6;
-        Double lng = mylocation.getLongitude()*1E6;
+		Location location = locationManager.getLastKnownLocation("gps");
+		if (location == null){
+			location = locationManager.getLastKnownLocation("network");
+		}
+		update(location);
+	}
+	
+	public void update(Location location){
+        Double lat = location.getLatitude()*1E6;
+        Double lng = location.getLongitude()*1E6;
         this.point = new GeoPoint(lat.intValue(), lng.intValue());
-        
-        
-        
-        
 	}
 	
 	public void setRadius(int meters){
 		this.radiusInMeters = meters;
 	}
 	
-	private void calculatePixelRadius(MapView mapView){
-		
-	}
-	
-	public int getRadius(int meters){
+	public int getRadius(){
 		return this.radiusInMeters;
 	}
 	
@@ -93,7 +129,7 @@ public class HomeOverlay extends Overlay {
 		Paint txtPaint = new Paint();
 		txtPaint.setARGB(255,255,255,255);
 		txtPaint.setAntiAlias(true);
-		txtPaint.setTextSize(this.radiusInPixels/3);
+		txtPaint.setTextSize(this.radiusInPixels/4);
 		String text;
 		if (this.radiusInMeters > 1000){
 			int km = this.radiusInMeters/1000;
@@ -115,30 +151,27 @@ public class HomeOverlay extends Overlay {
 		canvas.drawTextOnPath(text, tPath, 0,0, txtPaint);
 		canvas.drawPath(tPath, txtPaint);
 
+		drawArrow(canvas, screenPixels, this.radiusInPixels, angle);
+		
 		return super.draw(canvas, mapView, shadow, when);
 	}
 	
-	public void drawArrow(Canvas canvas, Point sPC, float length, double angle, float arrLen){
+	public void drawArrow(Canvas canvas, Point sPC, float length, double angle){
 		Paint paint = new Paint();
-		paint.setARGB(75,210,228,252);
-		paint.setStrokeWidth(1);
+		paint.setARGB(100,147,186,228);
+		paint.setStrokeWidth(2);
 		paint.setAntiAlias(true);
 		paint.setStrokeCap(Cap.ROUND);
-		paint.setStyle(Paint.Style.STROKE);
+		paint.setStyle(Paint.Style.FILL);
 		float x = (float) (sPC.x + length*Math.cos(angle));
 		float y = (float) (sPC.y + length*Math.sin(angle));
 		canvas.drawLine(sPC.x, sPC.y, x, y, paint);
 		
-		double arrw_angle = Math.PI/12;
-		float arrw_x = (float) (arrLen*Math.cos(arrw_angle)); 
-		float arrw_y = (float) (arrLen*Math.sin(arrw_angle));
+		canvas.drawCircle(x, y, 5, paint);
 		
-		canvas.drawLine(x,y, x - arrw_x, y - arrw_y, paint);	
-		canvas.drawLine(x,y, x - arrw_x, y + arrw_y, paint);
-		
-		canvas.drawLine(sPC.x,sPC.y, sPC.x + arrw_x, sPC.y - arrw_y, paint);
-		canvas.drawLine(sPC.x,sPC.y, sPC.x + arrw_x, sPC.y + arrw_y, paint);
-		
+		smallCircleX = x;
+		smallCircleY = y;
+		//smallCircleRadius = length/10;
 	}
 
 
@@ -162,30 +195,45 @@ public class HomeOverlay extends Overlay {
 		
 		int action = e.getAction();
 		
-		boolean onCircle = isOnCircle(x,y,this.centerXInPixels,this.centerYInPixels,50);
+		boolean onCircle = isOnCircle(x,y,this.smallCircleX,this.smallCircleY,this.smallCircleRadius+10);
 		
-		
-		if (action == MotionEvent.ACTION_DOWN){
-			if (onCircle){
-				if (this.status == 1)
-					this.status = 2;
-				else
+		switch (action){
+			case MotionEvent.ACTION_DOWN:
+				if (onCircle){
 					this.status = 1;
-			}else{
-				if (this.status==1){
-					this.status = 2;
 				}else
 					this.status = 0;
-			}
-			
-			if (this.status == 2){
-				// resize
-				double dist = Math.sqrt(Math.pow(Math.abs(this.centerXInPixels - x), 2) +
-						  Math.pow(Math.abs(this.centerYInPixels - y), 2));
-				
-				this.radiusInMeters = (int) ((int) (dist * this.radiusInMeters)/this.radiusInPixels);
-			}
-		}		
-		return super.onTouchEvent(e, mapView);
+				break;
+			case MotionEvent.ACTION_UP:
+				this.status = 0;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				if (this.status == 1){
+					double dist = Math.sqrt(Math.pow(Math.abs(this.centerXInPixels - x), 2) +
+							  Math.pow(Math.abs(this.centerYInPixels - y), 2));
+					this.radiusInMeters = (int) ((int) (dist * this.radiusInMeters)/this.radiusInPixels);
+					
+					//Recalculate angle
+					float opp = this.centerYInPixels - y;
+					float adj = this.centerXInPixels - x;
+					float tan = Math.abs(opp)/Math.abs(adj);
+					this.angle = (float) Math.atan(tan);
+					if (opp>0){
+						if (adj>0){
+							this.angle+= Math.PI;	
+						}else{
+							this.angle = this.angle * -1;
+						}
+					}else{
+						if (adj>0){
+							this.angle = (float) Math.PI - this.angle;
+						}else{
+							//Okay
+						}
+					}
+				}
+				break;
+		}
+		return this.status == 1;		
 	}
 }

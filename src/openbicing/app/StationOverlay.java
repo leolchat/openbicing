@@ -33,11 +33,14 @@ public class StationOverlay extends Overlay {
 	private static final int GREEN_STATE = 3;
 	
 	private int radiusInPixels;
-	private int radiusInMeters = 50;
+	private int radiusInMeters;
 	
-	private static final int BLACK_STATE_MAX = 0;
 	private static final int RED_STATE_MAX = 0;
 	private static final int YELLOW_STATE_MAX = 8;
+	
+	private static final int RED_STATE_RADIUS = 30;
+	private static final int YELLOW_STATE_RADIUS = 50;
+	private static final int GREEN_STATE_RADIUS = 80;
 	
 		
 	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, String id) {
@@ -51,15 +54,18 @@ public class StationOverlay extends Overlay {
 	}
 	
 	public void updateStatus(){
-		
 		if (this.bikes>YELLOW_STATE_MAX){
 			this.status = GREEN_STATE;
+			this.radiusInMeters = GREEN_STATE_RADIUS;
 		}
 		else if (this.bikes>RED_STATE_MAX){
 			this.status = YELLOW_STATE;
+			this.radiusInMeters = YELLOW_STATE_RADIUS;
 	
-		}else
+		}else{
 			this.status = RED_STATE;
+			this.radiusInMeters = RED_STATE_RADIUS;
+		}
 	}
 	
 	public void update(){
@@ -82,6 +88,7 @@ public class StationOverlay extends Overlay {
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		
 		calculatePixelRadius(mapView);
+		
 		Projection astral = mapView.getProjection();
 		Point screenPixels = astral.toPixels(this.point, null);
 				

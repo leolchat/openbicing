@@ -16,7 +16,8 @@ public class StationOverlayList {
 		this.context = context; 
 		this.mapOverlays = mapOverlays;
 		hOverlay = new HomeOverlay(this.context);
-    	hOverlay.update();
+    	hOverlay.setLastKnownLocation();
+    	addHome();
 	}
 	
 	public void addStationOverlay(Overlay overlay) {
@@ -42,10 +43,14 @@ public class StationOverlayList {
 		//this.mapOverlays.set(location, station);
 	}
 	public void updateHome(){
-		hOverlay.update();
+		hOverlay.setLastKnownLocation();
 	}
+	
 	public void clear(){
 		mapOverlays.clear();
 		addHome();
+	}
+	public HomeOverlay getHome(){
+		return hOverlay;
 	}
 }

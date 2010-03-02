@@ -19,11 +19,13 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -142,6 +144,30 @@ public class OpenBicingDbAdapter implements Runnable{
         mDbHelper.close();
     }
     
+    public void populateFromJSON(JSONArray stations) throws Exception{
+    	this.lastJSONInfo = stations;
+    	JSONObject station = null;
+    	stationsMemoryList.clear();
+    	for (int i = 0; i<stations.length(); i++){
+    		station = stations.getJSONObject(i);
+    		int lat = Integer.parseInt(station.getString("y"));
+    		int lng = Integer.parseInt(station.getString("x"));
+    		  		
+    		int bikes = station.getInt("bikes");
+    		int free = station.getInt("free");
+    		String timestamp = station.getString("timestamp");
+    		String id = station.getString("name");
+    		GeoPoint point = new GeoPoint(lat, lng);
+
+    		StationOverlay memoryStation = new StationOverlay(point,mCtx,bikes,free,timestamp,id);
+    		
+    	    stationsMemoryList.addStationOverlay(memoryStation);
+    	}
+    	mapView.postInvalidate();
+    	
+    	if (dialog.isShowing())
+			dialog.dismiss();
+    }
     
     public void populateFromJSON() throws Exception{
     	String listStations = mRESTHelper.restGET(STATIONS_URL);
@@ -211,12 +237,19 @@ public class OpenBicingDbAdapter implements Runnable{
 	private void updateDBStations() throws Exception{
 			mDb.execSQL("DELETE FROM "+STATIONS_TABLE);
 			if (lastJSONInfo!=null){
-				JSONObject station = null;
+				/*JSONObject station = null;
 				for (int i = 0; i<lastJSONInfo.length(); i++){
 		    		station = lastJSONInfo.getJSONObject(i);
 		    		createStation(station.get("name").toString(),station.get("coordinates").toString(),station.get("x").toString(),station.get("y").toString(),Integer.parseInt(station.get("bikes").toString()),Integer.parseInt(station.get("free").toString()),station.get("timestamp").toString());
-		    	}
-				Log.i("openBicing","I'm happily finished");
+		    	}*/
+				SharedPreferences settings = this.mCtx.getSharedPreferences("openbicing", 0);
+			    SharedPreferences.Editor editor = settings.edit();
+			    editor.putString("stations", lastJSONInfo.toString());
+
+			      // Don't forget to commit your edits!!!
+			    editor.commit();
+				
+			    Log.i("openBicing","I'm happily finished");
 			}else{
 				Log.i("openBicing","See?");
 			}
@@ -229,7 +262,7 @@ public class OpenBicingDbAdapter implements Runnable{
     public void populateFromDatabase(){
     	Log.i("openBicing","Shit there's no internet, trying to get database");
     	stationsMemoryList.clear();
-    	Cursor stationsCursor = fetchAllStations();
+    	/*Cursor stationsCursor = fetchAllStations();
     	while (stationsCursor.moveToNext()){
     		// This should be integers in the database.. :/
     		
@@ -248,7 +281,25 @@ public class OpenBicingDbAdapter implements Runnable{
     	}
     	mapView.postInvalidate();
     	if (dialog.isShowing())
-			dialog.dismiss();
+			dialog.dismiss();*/
+    	SharedPreferences settings = this.mCtx.getSharedPreferences("openbicing", 0);
+    	String strStations = settings.getString("stations", "[]");
+    	try {
+			JSONArray stations = new JSONArray(strStations);
+			try {
+				this.populateFromJSON(stations);
+			} catch (Exception e) {
+				Log.i("openBicing","DIE FUCKA DIE 2");
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (JSONException e) {
+			Log.i("openBicing","DIE FUCKA DIE");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+		}
+    	
     }
     
     public long createStation(String name, String coordinates, String x, String y, Integer bike, Integer free, String timestamp){

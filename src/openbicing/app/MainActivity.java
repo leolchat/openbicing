@@ -2,50 +2,82 @@ package openbicing.app;
 
 import java.util.List;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.location.Location;
-import android.location.LocationManager;
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ZoomButtonsController.OnZoomListener;
 
-import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
-import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 
 public class MainActivity extends MapActivity{
 
-	private OpenBicingDbAdapter mDbHelper;
-	private Cursor stationsCursor;
+	
+	
 	private MapView mapView;
 	public static final int MENU_ITEM_SYNC = Menu.FIRST;
 	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;	
 	private StationOverlayList stations;
+	private OpenBicingFastDbAdapter mFastDbHelper;
 	
+	private ProgressDialog progressDialog;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
 	    setContentView(R.layout.main);
+	    
 	    mapView = (MapView) findViewById(R.id.mapview);
 	    mapView.setBuiltInZoomControls(true);
+	    
 	    List <Overlay> mapOverlays = mapView.getOverlays();
+	    
 	    stations = new StationOverlayList(this,mapOverlays);
-	    mDbHelper = new OpenBicingDbAdapter(this, stations, mapView);
-        mDbHelper.open();
-        fillData();
-        
+		
+    	
+	    Handler handler = new Handler(){
+	    	public void handleMessage(Message msg){
+	    		switch(msg.what){
+	    		case OpenBicingFastDbAdapter.FETCH:
+	    			Log.i("openBicing","Data fetched");
+	    			break;
+	    		case OpenBicingFastDbAdapter.UPDATE_MAP:
+	    			Log.i("openBicing","Map Updated");
+	    			progressDialog.dismiss();
+	    			break;
+	    		case OpenBicingFastDbAdapter.UPDATE_DATABASE:
+	    			Log.i("openBicing","Database updated");
+	    			break;
+	    		}
+	    	}
+	    };
+	    
+	    mFastDbHelper = new OpenBicingFastDbAdapter(this, mapView, handler, stations);
+	    if (savedInstanceState!=null){
+	    	stations.updateHome();
+	    	stations.getHome().setRadius(savedInstanceState.getInt("homeRadius"));
+	    }else{
+	    	updateHome();
+	    }
+	    fillData();
+	    
+	    Log.i("openBicing","CREATE!");
 	}
 	
 	private void fillData() {
+		progressDialog = new ProgressDialog(this);
+		progressDialog.setTitle("");
+		progressDialog.setMessage("Loading. Please wait...");
+    	progressDialog.show();
 		try{
-			mDbHelper.syncStations();
+			mFastDbHelper.syncStations();
 		}catch (Exception e){
 			Log.i("openBicing","Error Updating?");
+			e.printStackTrace();
+			progressDialog.dismiss();
 		};
     }
 	
@@ -68,8 +100,10 @@ public class MainActivity extends MapActivity{
         return true;
     }
 	
-	public void updateMap(){
+	public void updateHome(){
 		stations.updateHome();
+		mapView.getController().setCenter(stations.getHome().getPoint());
+		mapView.getController().setZoom(16);
 	}
 	
 	@Override
@@ -81,9 +115,25 @@ public class MainActivity extends MapActivity{
             }catch(Exception e){};
             return true;
         case MENU_ITEM_LOCATION:
-            updateMap();
+            updateHome();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+	
+	@Override
+    protected void onResume() {
+        super.onResume();
+        Log.i("openBicing","RESUME!");
+	}
+	protected void onSaveInstanceState(Bundle outState) {
+        Log.i("openBicing","SaveInstanceState!");
+        outState.putInt("homeRadius", stations.getHome().getRadius());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i("openBicing","PAUSE!");
     }
 }
