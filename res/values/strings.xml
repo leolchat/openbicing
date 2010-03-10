@@ -4,4 +4,6 @@
     <string name="app_name">OpenBicing</string>
     <string name="menu_sync">Sync</string>
     <string name="menu_location">My Location</string>
+    <string name="menu_view_all">View All Stations</string>
+    <string name="menu_view_near">View Near Stations</string>
 </resources>

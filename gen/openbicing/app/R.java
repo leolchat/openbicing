@@ -28,5 +28,7 @@ public final class R {
         public static final int hello=0x7f040000;
         public static final int menu_location=0x7f040003;
         public static final int menu_sync=0x7f040002;
+        public static final int menu_view_all=0x7f040004;
+        public static final int menu_view_near=0x7f040005;
     }
 }

@@ -3,6 +3,8 @@ package openbicing.app;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import openbicing.utils.CircleHelper;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -32,6 +34,7 @@ public class OpenBicingFastDbAdapter implements Runnable{
 	public static final int FETCH = 0;
 	public static final int UPDATE_MAP = 1;
 	public static final int UPDATE_DATABASE = 2;
+	public static final int UPDATE_MAP_LESS = 3;
 	
 	private StationOverlayList stationsMemoryList;
     
@@ -46,6 +49,9 @@ public class OpenBicingFastDbAdapter implements Runnable{
 	private Queue<Integer> toDo;
 	
 	private JSONArray stations;
+	
+	private GeoPoint center;
+	private int radius;
     
 	
     public OpenBicingFastDbAdapter(Context ctx, MapView mapView, Handler handler, StationOverlayList stationsMemoryList){
@@ -60,6 +66,31 @@ public class OpenBicingFastDbAdapter implements Runnable{
     
     public String fetchStations() throws Exception{
     	return mRESTHelper.restGET(STATIONS_URL);
+    }
+    
+    public void populate(JSONArray stations, GeoPoint center, float radius) throws Exception{
+    	JSONObject station = null;
+    	int lat,lng,bikes,free;
+    	String timestamp,id;
+    	GeoPoint point;
+    	
+    	stationsMemoryList.clear();
+    	for (int i = 0; i<stations.length(); i++){
+    		station = stations.getJSONObject(i);
+    		lat = Integer.parseInt(station.getString("y"));
+    		lng = Integer.parseInt(station.getString("x"));
+    		point = new GeoPoint(lat, lng);
+    		if (CircleHelper.isOnCircle(point.getLatitudeE6(), point.getLongitudeE6(), center.getLatitudeE6(), center.getLongitudeE6(), radius*9)){
+    			bikes = station.getInt("bikes");
+        		free = station.getInt("free");
+        		timestamp = station.getString("timestamp");
+        		id = station.getString("name");
+    			StationOverlay memoryStation = new StationOverlay(point,mCtx,bikes,free,timestamp,id);
+        	    stationsMemoryList.addStationOverlay(memoryStation);	
+    		}
+    	}
+    	
+    	mapView.postInvalidate();
     }
     
     public void populate(JSONArray stations) throws Exception{
@@ -99,11 +130,34 @@ public class OpenBicingFastDbAdapter implements Runnable{
     	String strStations = settings.getString("stations", "[]");
     	return new JSONArray(strStations);
     }
-	
     
-    public void syncStations() throws Exception{
+    public void loadStations() throws Exception{
+    	this.stations = retrieve();
+    }
+	
+    public void paintAllStations() throws Exception{
+    	try{
+    		populate(stations);
+    	}catch (Exception populateError){
+			//I don't know.. report it back?
+			Log.i("openBicing","Something went really wrong!");
+		}
+    }
+    public void paintLessStations(GeoPoint center, int radius) throws Exception{
+    	try{
+    		populate(stations,center,radius);
+    	}catch (Exception populateError){
+			//I don't know.. report it back?
+			Log.i("openBicing","Something went really wrong!");
+		}
+    }
+    
+    public void syncStations(boolean all) throws Exception{
     	toDo.add(FETCH);
-    	toDo.add(UPDATE_MAP);
+    	if (all)
+    		toDo.add(UPDATE_MAP);
+    	else
+    		toDo.add(UPDATE_MAP_LESS);
     	toDo.add(UPDATE_DATABASE);
     	Thread happyThread = new Thread(this);
     	happyThread.start();
@@ -113,6 +167,11 @@ public class OpenBicingFastDbAdapter implements Runnable{
     	toDo.add(UPDATE_MAP);
     	Thread happyThread = new Thread(this);
     	happyThread.start();
+    }
+    
+    public void setHome(GeoPoint center, int radius){
+    	this.center = center;
+    	this.radius = radius;
     }
     
     @Override
@@ -135,6 +194,13 @@ public class OpenBicingFastDbAdapter implements Runnable{
     				break;
     			case UPDATE_MAP:
     				try{populate(stations);}catch (Exception populateError){
+    					//I don't know.. report it back?
+    					Log.i("openBicing","Something went really wrong!");
+    				}
+    				handler.sendEmptyMessage(UPDATE_MAP);
+    				break;
+    			case UPDATE_MAP_LESS:
+    				try{populate(stations,this.center,this.radius);}catch (Exception populateError){
     					//I don't know.. report it back?
     					Log.i("openBicing","Something went really wrong!");
     				}

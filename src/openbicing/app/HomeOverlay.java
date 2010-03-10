@@ -12,6 +12,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
@@ -37,10 +38,13 @@ public class HomeOverlay extends Overlay {
 	private float smallCircleRadius = 10;
 	
 	private float angle = 0;
+	
+	private Handler handler;
 		
 	
-	public HomeOverlay(Context context){
+	public HomeOverlay(Context context, Handler handler){
 		this.context = context;
+		this.handler = handler;
 		LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
 		List <String> providers = locationManager.getProviders(true); 
 		for (int i = 0; i< providers.size(); i++){
@@ -119,8 +123,6 @@ public class HomeOverlay extends Overlay {
 		paint.setAntiAlias(true);
 		paint.setStyle(Paint.Style.STROKE);
 		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels, paint);
-		canvas.drawLine(this.centerXInPixels-10, this.centerYInPixels, this.centerXInPixels+10, this.centerYInPixels, paint);
-		canvas.drawLine(this.centerXInPixels, this.centerYInPixels-10, this.centerXInPixels, this.centerYInPixels+10, paint);
 		
 		paint.setStyle(Paint.Style.FILL);
 		paint.setAlpha(20);
@@ -169,6 +171,8 @@ public class HomeOverlay extends Overlay {
 		
 		canvas.drawCircle(x, y, 5, paint);
 		
+		canvas.drawCircle(sPC.x, sPC.y, 5, paint);
+		
 		smallCircleX = x;
 		smallCircleY = y;
 		//smallCircleRadius = length/10;
@@ -205,7 +209,10 @@ public class HomeOverlay extends Overlay {
 					this.status = 0;
 				break;
 			case MotionEvent.ACTION_UP:
-				this.status = 0;
+				if (this.status == 1){
+					this.status = 0;
+					handler.sendEmptyMessage(1);
+				}
 				break;
 			case MotionEvent.ACTION_MOVE:
 				if (this.status == 1){
@@ -231,6 +238,7 @@ public class HomeOverlay extends Overlay {
 							//Okay
 						}
 					}
+					handler.sendEmptyMessage(1);
 				}
 				break;
 		}

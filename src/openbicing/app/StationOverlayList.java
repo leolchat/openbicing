@@ -3,6 +3,7 @@ package openbicing.app;
 import java.util.List;
 
 import android.content.Context;
+import android.os.Handler;
 
 import com.google.android.maps.Overlay;
 
@@ -11,11 +12,13 @@ public class StationOverlayList {
 	private List <Overlay> mapOverlays;
 	private Context context;
 	private HomeOverlay hOverlay;
+	private Handler handler;
 	
-	public StationOverlayList (Context context, List <Overlay> mapOverlays) {
+	public StationOverlayList (Context context, List <Overlay> mapOverlays, Handler handler) {
 		this.context = context; 
 		this.mapOverlays = mapOverlays;
-		hOverlay = new HomeOverlay(this.context);
+		this.handler = handler;
+		hOverlay = new HomeOverlay(this.context,handler);
     	hOverlay.setLastKnownLocation();
     	addHome();
 	}

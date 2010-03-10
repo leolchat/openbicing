@@ -1,5 +1,6 @@
 package openbicing.app;
 
+import openbicing.utils.CircleHelper;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -91,7 +92,7 @@ public class StationOverlay extends Overlay {
 		
 		Projection astral = mapView.getProjection();
 		Point screenPixels = astral.toPixels(this.point, null);
-				
+		
 		RectF oval = new RectF(screenPixels.x-this.radiusInPixels,screenPixels.y-this.radiusInPixels,screenPixels.x+this.radiusInPixels,screenPixels.y+this.radiusInPixels);
 		Paint paint = new Paint();
 		if (this.status == RED_STATE)

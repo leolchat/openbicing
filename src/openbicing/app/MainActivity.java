@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
@@ -20,9 +21,12 @@ public class MainActivity extends MapActivity{
 	
 	private MapView mapView;
 	public static final int MENU_ITEM_SYNC = Menu.FIRST;
-	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;	
+	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;
+	public static final int MENU_ITEM_WHATEVER = Menu.FIRST+2;	
 	private StationOverlayList stations;
 	private OpenBicingFastDbAdapter mFastDbHelper;
+	
+	private boolean view_all = false;
 	
 	private ProgressDialog progressDialog;
 	@Override
@@ -35,7 +39,19 @@ public class MainActivity extends MapActivity{
 	    
 	    List <Overlay> mapOverlays = mapView.getOverlays();
 	    
-	    stations = new StationOverlayList(this,mapOverlays);
+	    Handler paintHandler = new Handler(){
+	    	public void handleMessage(Message msg){
+	    		if(msg.what == 1 && !view_all){
+	    			try{
+	    				view_near();
+	    			}catch(Exception e){
+	    				Log.i("openBicing","LOL");
+	    			}
+	    		}
+	    	}
+	    };
+	    
+	    stations = new StationOverlayList(this,mapOverlays,paintHandler);
 		
     	
 	    Handler handler = new Handler(){
@@ -59,21 +75,44 @@ public class MainActivity extends MapActivity{
 	    if (savedInstanceState!=null){
 	    	stations.updateHome();
 	    	stations.getHome().setRadius(savedInstanceState.getInt("homeRadius"));
+	    	this.view_all = savedInstanceState.getBoolean("view_all");
 	    }else{
 	    	updateHome();
 	    }
-	    fillData();
+	    try{
+	    	mFastDbHelper.loadStations();
+	    	
+	    }catch (Exception e){
+	    	Log.i("openBicing","SHIT ... SUCKS");
+	    };
+	    if(view_all)
+	    	view_all();
+	    else
+	    	view_near();
 	    
 	    Log.i("openBicing","CREATE!");
 	}
 	
-	private void fillData() {
+	
+	private void fillData(GeoPoint center, int radius) {
+		try{
+			mFastDbHelper.paintLessStations(center,radius);
+		}catch (Exception e){
+			Log.i("openBicing","Error Updating?");
+			e.printStackTrace();
+		};
+    }
+	
+	private void fillData(boolean all) {
+		if (!all)
+			mFastDbHelper.setHome(stations.getHome().getPoint(), stations.getHome().getRadius());
+		
 		progressDialog = new ProgressDialog(this);
 		progressDialog.setTitle("");
 		progressDialog.setMessage("Loading. Please wait...");
     	progressDialog.show();
 		try{
-			mFastDbHelper.syncStations();
+			mFastDbHelper.syncStations(all);
 		}catch (Exception e){
 			Log.i("openBicing","Error Updating?");
 			e.printStackTrace();
@@ -97,6 +136,8 @@ public class MainActivity extends MapActivity{
                 .setIcon(R.drawable.refresh);
         menu.add(0, MENU_ITEM_LOCATION, 0, R.string.menu_location)
         	.setIcon(android.R.drawable.ic_menu_mylocation);
+        menu.add(0, MENU_ITEM_WHATEVER, 0, R.string.menu_view_all)
+    	.setIcon(android.R.drawable.ic_menu_mylocation);
         return true;
     }
 	
@@ -106,17 +147,35 @@ public class MainActivity extends MapActivity{
 		mapView.getController().setZoom(16);
 	}
 	
+	public void view_all(){
+		try{
+			mFastDbHelper.paintAllStations();
+		}catch(Exception e){};
+	}
+	
+	public void view_near(){
+		this.fillData(stations.getHome().getPoint(),stations.getHome().getRadius());
+	}
+	
 	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case MENU_ITEM_SYNC:
             try{
-            	this.fillData();
+            	this.fillData(view_all);
             }catch(Exception e){};
             return true;
         case MENU_ITEM_LOCATION:
             updateHome();
             return true;
+        case MENU_ITEM_WHATEVER:
+        	if (!view_all){
+        		view_all();
+        	}else{
+        		view_near();	
+        	}
+        	view_all=!view_all;
+        	return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -126,9 +185,11 @@ public class MainActivity extends MapActivity{
         super.onResume();
         Log.i("openBicing","RESUME!");
 	}
+	
 	protected void onSaveInstanceState(Bundle outState) {
         Log.i("openBicing","SaveInstanceState!");
         outState.putInt("homeRadius", stations.getHome().getRadius());
+        outState.putBoolean("view_all", view_all);
     }
 
     @Override
