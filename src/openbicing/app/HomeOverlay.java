@@ -22,6 +22,8 @@ import com.google.android.maps.Projection;
 
 public class HomeOverlay extends Overlay {
 
+	
+	public final int MOTION_CIRCLE_STOP = 1;
 	private Context context;
 	private GeoPoint point;
 	
@@ -46,7 +48,7 @@ public class HomeOverlay extends Overlay {
 		this.context = context;
 		this.handler = handler;
 		LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
-		List <String> providers = locationManager.getProviders(true); 
+		List <String> providers = locationManager.getProviders(true);
 		for (int i = 0; i< providers.size(); i++){
 			locationManager.requestLocationUpdates(providers.get(i), 20000, 25, new LocationListener(){
 				@Override
@@ -211,7 +213,7 @@ public class HomeOverlay extends Overlay {
 			case MotionEvent.ACTION_UP:
 				if (this.status == 1){
 					this.status = 0;
-					handler.sendEmptyMessage(1);
+					handler.sendEmptyMessage(MOTION_CIRCLE_STOP);
 				}
 				break;
 			case MotionEvent.ACTION_MOVE:
@@ -238,7 +240,7 @@ public class HomeOverlay extends Overlay {
 							//Okay
 						}
 					}
-					handler.sendEmptyMessage(1);
+					handler.sendEmptyMessage(MOTION_CIRCLE_STOP);
 				}
 				break;
 		}

@@ -3,12 +3,15 @@ package openbicing.app;
 import java.util.List;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -27,7 +30,7 @@ public class MainActivity extends MapActivity{
 	private OpenBicingFastDbAdapter mFastDbHelper;
 	
 	private boolean view_all = false;
-	
+	private HomeOverlay hOverlay;
 	private ProgressDialog progressDialog;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -41,7 +44,7 @@ public class MainActivity extends MapActivity{
 	    
 	    Handler paintHandler = new Handler(){
 	    	public void handleMessage(Message msg){
-	    		if(msg.what == 1 && !view_all){
+	    		if(msg.what == hOverlay.MOTION_CIRCLE_STOP && !view_all){
 	    			try{
 	    				view_near();
 	    			}catch(Exception e){
@@ -67,6 +70,11 @@ public class MainActivity extends MapActivity{
 	    		case OpenBicingFastDbAdapter.UPDATE_DATABASE:
 	    			Log.i("openBicing","Database updated");
 	    			break;
+	    		case OpenBicingFastDbAdapter.NETWORK_ERROR:
+	    			Log.i("openBicing","Network error, last update from "+mFastDbHelper.getLastUpdated());
+	    			Toast toast = Toast.makeText(getApplicationContext(),"Network error,  last update from "+mFastDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
+			    	toast.show();
+	    			break;
 	    		}
 	    	}
 	    };
@@ -81,15 +89,22 @@ public class MainActivity extends MapActivity{
 	    }
 	    try{
 	    	mFastDbHelper.loadStations();
+	    	if (savedInstanceState==null){
+		    	Toast toast = Toast.makeText(this.getApplicationContext(),"Last Updated: "+mFastDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
+		    	toast.show();
+		    }
 	    	
 	    }catch (Exception e){
 	    	Log.i("openBicing","SHIT ... SUCKS");
 	    };
+	    
+	    
+	    
 	    if(view_all)
 	    	view_all();
 	    else
 	    	view_near();
-	    
+	    hOverlay = stations.getHome();
 	    Log.i("openBicing","CREATE!");
 	}
 	

@@ -1,5 +1,7 @@
 package openbicing.app;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -12,6 +14,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -35,9 +38,11 @@ public class OpenBicingFastDbAdapter implements Runnable{
 	public static final int UPDATE_MAP = 1;
 	public static final int UPDATE_DATABASE = 2;
 	public static final int UPDATE_MAP_LESS = 3;
-	
+	public static final int NETWORK_ERROR = 4;
+	public static final String TIMESTAMP_FORMAT = "HH:mm:ss dd/MM/yyyy";
 	private StationOverlayList stationsMemoryList;
     
+	
 	private RESTHelper mRESTHelper;
     
 	private MapView mapView;
@@ -51,7 +56,10 @@ public class OpenBicingFastDbAdapter implements Runnable{
 	private JSONArray stations;
 	
 	private GeoPoint center;
+	
 	private int radius;
+	
+	private String last_updated;
     
 	
     public OpenBicingFastDbAdapter(Context ctx, MapView mapView, Handler handler, StationOverlayList stationsMemoryList){
@@ -122,12 +130,18 @@ public class OpenBicingFastDbAdapter implements Runnable{
     	SharedPreferences settings = this.mCtx.getSharedPreferences(PREF_NAME, 0);
 	    SharedPreferences.Editor editor = settings.edit();
 	    editor.putString("stations", stations.toString());
+	    editor.putString("last_updated", last_updated);
 	    editor.commit();
+    }
+    
+    public String getLastUpdated(){
+    	return last_updated;
     }
     
     public JSONArray retrieve() throws Exception{
     	SharedPreferences settings = this.mCtx.getSharedPreferences("openbicing", 0);
     	String strStations = settings.getString("stations", "[]");
+    	last_updated = settings.getString("last_updated", null);
     	return new JSONArray(strStations);
     }
     
@@ -181,16 +195,20 @@ public class OpenBicingFastDbAdapter implements Runnable{
     		switch(action){
     			case FETCH:
     				try{
-    					stations = new JSONArray(fetchStations()); 
+    					stations = new JSONArray(fetchStations());
+    					SimpleDateFormat sdf = new SimpleDateFormat(TIMESTAMP_FORMAT);
+    					Calendar cal = Calendar.getInstance();
+    					last_updated = sdf.format(cal.getTime());
     				}catch (Exception fetchError){
     					//Something went wrong (probably no Internet access)
     					//Populate from store
+    					handler.sendEmptyMessage(NETWORK_ERROR);
     					try{stations = retrieve();}catch (Exception internalError){
     						//Shit, no store too? then fuck off..
     						stations = new JSONArray();
     					}
-    					handler.sendEmptyMessage(FETCH);
     				}
+    				handler.sendEmptyMessage(FETCH);
     				break;
     			case UPDATE_MAP:
     				try{populate(stations);}catch (Exception populateError){
