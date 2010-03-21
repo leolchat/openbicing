@@ -26,6 +26,8 @@ public class StationOverlay extends Overlay {
 	private String id;
 	private Context context;
 	
+	private boolean selected = false;
+	
 	private GeoPoint point;
 		
 	private static final int BLACK_STATE = 0;
@@ -54,6 +56,10 @@ public class StationOverlay extends Overlay {
 		this.updateStatus();
 	}
 	
+	public GeoPoint getCenter(){
+		return this.point;
+	}
+	
 	public void updateStatus(){
 		if (this.bikes>YELLOW_STATE_MAX){
 			this.status = GREEN_STATE;
@@ -69,6 +75,9 @@ public class StationOverlay extends Overlay {
 		}
 	}
 	
+	public void setSelected(boolean selected){
+		this.selected = selected;
+	}
 	public void update(){
 		// TODO Update aviability.. :D
 		this.updateStatus();
@@ -112,6 +121,15 @@ public class StationOverlay extends Overlay {
 		paint2.setStyle(Paint.Style.STROKE);
 		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels, paint2);
 		canvas.drawOval(oval,paint);
+		
+		if (this.selected){
+			Paint paint3 = new Paint();
+			paint3.setARGB(75, 0,0,0);
+			paint3.setAntiAlias(true);
+			paint3.setStrokeWidth(2);
+			paint3.setStyle(Paint.Style.STROKE);
+			canvas.drawRect(screenPixels.x-this.radiusInPixels*4/3, screenPixels.y-this.radiusInPixels*4/3, screenPixels.x+this.radiusInPixels*4/3, screenPixels.y+this.radiusInPixels*4/3, paint3);
+		}
 	}
 
 	@Override

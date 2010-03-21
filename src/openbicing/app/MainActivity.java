@@ -26,9 +26,8 @@ public class MainActivity extends MapActivity{
 	public static final int MENU_ITEM_SYNC = Menu.FIRST;
 	public static final int MENU_ITEM_LOCATION = Menu.FIRST+1;
 	public static final int MENU_ITEM_WHATEVER = Menu.FIRST+2;	
-	private StationOverlayList stations;
-	private OpenBicingFastDbAdapter mFastDbHelper;
-	
+	private StationOverlayList stations;	
+	private StationsDBAdapter mDbHelper;
 	private boolean view_all = false;
 	private HomeOverlay hOverlay;
 	private ProgressDialog progressDialog;
@@ -48,7 +47,7 @@ public class MainActivity extends MapActivity{
 	    			try{
 	    				view_near();
 	    			}catch(Exception e){
-	    				Log.i("openBicing","LOL");
+	    				
 	    			}
 	    		}
 	    	}
@@ -60,26 +59,25 @@ public class MainActivity extends MapActivity{
 	    Handler handler = new Handler(){
 	    	public void handleMessage(Message msg){
 	    		switch(msg.what){
-	    		case OpenBicingFastDbAdapter.FETCH:
+	    		case StationsDBAdapter.FETCH:
 	    			Log.i("openBicing","Data fetched");
 	    			break;
-	    		case OpenBicingFastDbAdapter.UPDATE_MAP:
+	    		case StationsDBAdapter.UPDATE_MAP:
 	    			Log.i("openBicing","Map Updated");
 	    			progressDialog.dismiss();
 	    			break;
-	    		case OpenBicingFastDbAdapter.UPDATE_DATABASE:
+	    		case StationsDBAdapter.UPDATE_DATABASE:
 	    			Log.i("openBicing","Database updated");
 	    			break;
-	    		case OpenBicingFastDbAdapter.NETWORK_ERROR:
-	    			Log.i("openBicing","Network error, last update from "+mFastDbHelper.getLastUpdated());
-	    			Toast toast = Toast.makeText(getApplicationContext(),"Network error,  last update from "+mFastDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
+	    		case StationsDBAdapter.NETWORK_ERROR:
+	    			Log.i("openBicing","Network error, last update from "+mDbHelper.getLastUpdated());
+	    			Toast toast = Toast.makeText(getApplicationContext(),"Network error,  last update from "+mDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
 			    	toast.show();
 	    			break;
 	    		}
 	    	}
 	    };
-	    
-	    mFastDbHelper = new OpenBicingFastDbAdapter(this, mapView, handler, stations);
+	    mDbHelper = new StationsDBAdapter(this, mapView, handler, stations);
 	    if (savedInstanceState!=null){
 	    	stations.updateHome();
 	    	stations.getHome().setRadius(savedInstanceState.getInt("homeRadius"));
@@ -88,10 +86,15 @@ public class MainActivity extends MapActivity{
 	    	updateHome();
 	    }
 	    try{
-	    	mFastDbHelper.loadStations();
+	    	mDbHelper.loadStations();
 	    	if (savedInstanceState==null){
-		    	Toast toast = Toast.makeText(this.getApplicationContext(),"Last Updated: "+mFastDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
-		    	toast.show();
+	    		String strUpdated = mDbHelper.getLastUpdated();
+	    		if (strUpdated==null){
+	    			this.fillData(view_all);	
+	    		}else{
+			    	Toast toast = Toast.makeText(this.getApplicationContext(),"Last Updated: "+mDbHelper.getLastUpdated(),Toast.LENGTH_LONG);
+			    	toast.show();
+	    		}
 		    }
 	    	
 	    }catch (Exception e){
@@ -109,25 +112,23 @@ public class MainActivity extends MapActivity{
 	}
 	
 	
-	private void fillData(GeoPoint center, int radius) {
-		try{
-			mFastDbHelper.paintLessStations(center,radius);
-		}catch (Exception e){
-			Log.i("openBicing","Error Updating?");
-			e.printStackTrace();
-		};
-    }
-	
 	private void fillData(boolean all) {
-		if (!all)
-			mFastDbHelper.setHome(stations.getHome().getPoint(), stations.getHome().getRadius());
+		Bundle data = new Bundle();
+		if (!all){
+			GeoPoint center = stations.getHome().getPoint();
+			data.putInt(StationsDBAdapter.CENTER_LAT_KEY, center.getLatitudeE6());
+			data.putInt(StationsDBAdapter.CENTER_LNG_KEY, center.getLongitudeE6());
+			data.putInt(StationsDBAdapter.RADIUS_KEY, stations.getHome().getRadius());
+		}
+		
+		data.putString(StationsDBAdapter.STATION_PROVIDER_KEY, StationsDBAdapter.BICING_PROVIDER);
 		
 		progressDialog = new ProgressDialog(this);
 		progressDialog.setTitle("");
 		progressDialog.setMessage("Loading. Please wait...");
     	progressDialog.show();
 		try{
-			mFastDbHelper.syncStations(all);
+			mDbHelper.sync(all,data);
 		}catch (Exception e){
 			Log.i("openBicing","Error Updating?");
 			e.printStackTrace();
@@ -144,15 +145,12 @@ public class MainActivity extends MapActivity{
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-
-        // This is our one standard application action -- inserting a
-        // new note into the list.
         menu.add(0, MENU_ITEM_SYNC, 0, R.string.menu_sync)
                 .setIcon(R.drawable.refresh);
         menu.add(0, MENU_ITEM_LOCATION, 0, R.string.menu_location)
         	.setIcon(android.R.drawable.ic_menu_mylocation);
         menu.add(0, MENU_ITEM_WHATEVER, 0, R.string.menu_view_all)
-    	.setIcon(android.R.drawable.ic_menu_mylocation);
+    	.setIcon(android.R.drawable.checkbox_off_background);
         return true;
     }
 	
@@ -164,12 +162,14 @@ public class MainActivity extends MapActivity{
 	
 	public void view_all(){
 		try{
-			mFastDbHelper.paintAllStations();
+			mDbHelper.populateStations();
 		}catch(Exception e){};
 	}
 	
 	public void view_near(){
-		this.fillData(stations.getHome().getPoint(),stations.getHome().getRadius());
+		try{
+			mDbHelper.populateStations(stations.getHome().getPoint(), stations.getHome().getRadius());
+		}catch(Exception e){};
 	}
 	
 	@Override
@@ -185,8 +185,10 @@ public class MainActivity extends MapActivity{
             return true;
         case MENU_ITEM_WHATEVER:
         	if (!view_all){
+        		item.setIcon(android.R.drawable.checkbox_on_background);
         		view_all();
         	}else{
+        		item.setIcon(android.R.drawable.checkbox_off_background);
         		view_near();	
         	}
         	view_all=!view_all;
