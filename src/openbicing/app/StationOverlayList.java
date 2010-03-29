@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.os.Handler;
+import android.util.Log;
 
 import com.google.android.maps.Overlay;
 
@@ -13,6 +14,9 @@ public class StationOverlayList {
 	private Context context;
 	private HomeOverlay hOverlay;
 	private Handler handler;
+	private int current = -1;
+	private int first;
+	private StationOverlay last = null;
 	
 	public StationOverlayList (Context context, List <Overlay> mapOverlays, Handler handler) {
 		this.context = context; 
@@ -25,10 +29,15 @@ public class StationOverlayList {
 	
 	public void addStationOverlay(Overlay overlay) {
 		this.mapOverlays.add(overlay);
+		if (this.current == -1){
+			this.current = 1;
+			this.first = 1;
+			Log.i("openBicing","Set Current: "+Integer.toString(this.current));
+		}
 	}
 	
 	public void addHome(){
-		mapOverlays.add(hOverlay);
+		mapOverlays.add(0,hOverlay);
     }
 	
 	public void addStationOverlay(int location, Overlay overlay) {
@@ -51,9 +60,35 @@ public class StationOverlayList {
 	
 	public void clear(){
 		mapOverlays.clear();
+		current = -1;
 		addHome();
 	}
 	public HomeOverlay getHome(){
 		return hOverlay;
+	}
+	
+	public StationOverlay selectNext(){
+		if (last!=null)
+			last.setSelected(false);
+		current++;
+		if (current>mapOverlays.size()-1)
+			current = first;
+		StationOverlay res = (StationOverlay) mapOverlays.get(current);
+		res.setSelected(true);
+		last = res;
+		return res;
+	}
+	
+	public StationOverlay selectPrevious(){
+		if (last!=null)
+			last.setSelected(false);
+		current--;
+		if (current <= 0){
+			current = mapOverlays.size()-1;
+		}
+		StationOverlay res = (StationOverlay) mapOverlays.get(current);
+		res.setSelected(true);
+		last = res;
+		return res;
 	}
 }

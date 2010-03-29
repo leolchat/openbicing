@@ -1,17 +1,11 @@
 package openbicing.app;
 
-import openbicing.utils.CircleHelper;
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -44,7 +38,6 @@ public class StationOverlay extends Overlay {
 	private static final int RED_STATE_RADIUS = 30;
 	private static final int YELLOW_STATE_RADIUS = 50;
 	private static final int GREEN_STATE_RADIUS = 80;
-	
 		
 	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, String id) {
 		this.point = point;
@@ -54,6 +47,19 @@ public class StationOverlay extends Overlay {
 		this.timestamp = timestamp;
 		this.context = context;
 		this.updateStatus();
+	}
+	
+	
+	public String getId(){
+		return this.id;
+	}
+	
+	public int getBikes(){
+		return this.bikes;
+	}
+	
+	public int getFree(){
+		return this.free;
 	}
 	
 	public GeoPoint getCenter(){
@@ -139,23 +145,15 @@ public class StationOverlay extends Overlay {
 		if ((p.getLatitudeE6()<=this.point.getLatitudeE6()+800 && p.getLatitudeE6()>=this.point.getLatitudeE6()-800) 
 			&&
 			(p.getLongitudeE6()<=this.point.getLongitudeE6()+800 && p.getLongitudeE6()>=this.point.getLongitudeE6()-800)){
-			
-			Dialog dialog = new Dialog(context);
-
-			dialog.setContentView(R.layout.station);
-			dialog.setTitle(this.id);
-
-			TextView text = (TextView) dialog.findViewById(R.id.text);
-			text.setText("Bikes: "+this.bikes+" / Free Spaces: "+this.free+"\nLast Update (GMT): "+this.timestamp);
-			Log.i("openBicing",this.id);
-			dialog.setCancelable(true);
-			dialog.setCanceledOnTouchOutside(true);
-			dialog.show();
+			this.setSelected(!this.getSelected());
 		}
 			
 		return super.onTap(p, mapView);
 	}
 
+	public boolean getSelected(){
+		return this.selected;
+	}
 	@Override
 	public boolean onTouchEvent(MotionEvent e, MapView mapView) {
 		// TODO Auto-generated method stub

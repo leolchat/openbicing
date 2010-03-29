@@ -1,9 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.maps.MapView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mapview"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:clickable="true"
-    android:apiKey="0M6iRHXUjmWBHgd0HYv7WNqm70Wq1XPVLhH275A"
-/>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/home_container" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<com.google.android.maps.MapView
+		xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/mapview"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:clickable="true" android:apiKey="0M6iRHXUjmWBHgd0HYv7WNqm70Wq1XPVLhH275A" />
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:orientation="vertical" android:gravity="bottom">
+
+		<openbicing.app.InfoLayer android:id="@+id/info_layer"
+			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:paddingTop="5px" android:paddingLeft="5px"
+			android:paddingBottom="5px" android:paddingRight="5px">
+<LinearLayout android:id="@+id/LinearLayout01"
+				android:layout_width="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
+				android:orientation="horizontal" android:layout_height="wrap_content">
+				<Button android:text="@string/prev_station" android:id="@+id/prev_station"
+					android:layout_width="wrap_content" android:layout_height="fill_parent"
+					android:layout_weight="0" />
+				<LinearLayout android:id="@+id/LinearLayout02"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"
+					android:orientation="vertical" android:layout_weight="1">
+
+					<TextView android:text="356 - Balcells" android:id="@+id/station_id"
+						android:layout_height="wrap_content" android:layout_width="fill_parent"
+						android:gravity="center" />
+
+					<LinearLayout android:id="@+id/LinearLayout03"
+						android:layout_width="fill_parent" android:layout_height="wrap_content"
+						android:orientation="vertical">
+						<LinearLayout android:id="@+id/LinearLayout04"
+							android:layout_height="wrap_content" android:layout_width="fill_parent">
+							<TextView android:text="0 Bikes / 27 Spaces" android:id="@+id/ocupation"
+								android:gravity="center"
+								android:layout_width="fill_parent" android:layout_height="wrap_content" />
+						</LinearLayout>
+						<LinearLayout android:id="@+id/LinearLayout05"
+							android:layout_width="fill_parent" android:layout_height="wrap_content"
+							android:orientation="horizontal" android:gravity="center"
+							>
+							<TextView android:text="150m" android:id="@+id/distance"
+								android:layout_width="wrap_content" android:layout_height="wrap_content" 
+								/>
+							<TextView android:text="1 min" android:id="@+id/walking_time"
+								android:layout_width="wrap_content" android:layout_height="wrap_content"
+								/>
+						</LinearLayout>
+					</LinearLayout>
+
+				</LinearLayout>
+				<Button android:text="@string/next_station" android:id="@+id/next_station"
+					android:layout_width="wrap_content" android:layout_height="fill_parent"
+					android:layout_weight="0" />
+			</LinearLayout>
+			
+
+		</openbicing.app.InfoLayer>
+
+
+	</LinearLayout>
+</FrameLayout>

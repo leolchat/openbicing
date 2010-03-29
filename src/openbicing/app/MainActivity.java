@@ -3,14 +3,15 @@ package openbicing.app;
 import java.util.List;
 
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -28,6 +29,7 @@ public class MainActivity extends MapActivity{
 	public static final int MENU_ITEM_WHATEVER = Menu.FIRST+2;	
 	private StationOverlayList stations;	
 	private StationsDBAdapter mDbHelper;
+	private InfoLayer infoLayer;
 	private boolean view_all = false;
 	private HomeOverlay hOverlay;
 	private ProgressDialog progressDialog;
@@ -109,6 +111,42 @@ public class MainActivity extends MapActivity{
 	    	view_near();
 	    hOverlay = stations.getHome();
 	    Log.i("openBicing","CREATE!");
+	    
+	    infoLayer = (InfoLayer) findViewById(R.id.info_layer);
+	    
+	    Handler infoHandler = new Handler(){
+	    	public void handleMessage(Message msg){
+	    		StationOverlay tmp;
+	    		switch(msg.what){
+	    		case InfoLayer.NEXT_STATION:
+	    			tmp = stations.selectNext();
+	    			break;
+	    		case InfoLayer.PREV_STATION:
+	    			tmp = stations.selectPrevious();
+	    			break;
+	    		default:
+	    			tmp = null;
+	    		}
+	    		infoLayer.populateFields(tmp);
+	    		mapView.postInvalidate();
+	    	}
+	    };
+	    
+	    infoLayer.setElements(
+	    		(Button) findViewById(R.id.next_station), 
+	    		(Button) findViewById(R.id.prev_station), 
+	    		(TextView) findViewById(R.id.station_id), 
+	    		(TextView) findViewById(R.id.ocupation), 
+	    		(TextView) findViewById(R.id.distance), 
+	    		(TextView) findViewById(R.id.walking_time), 
+	    		infoHandler);
+	    
+	    infoLayer.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				mapView.getController().animateTo(infoLayer.getCurrentCenter());
+			}
+		});
 	}
 	
 	
