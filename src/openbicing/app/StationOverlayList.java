@@ -3,6 +3,7 @@ package openbicing.app;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.os.Handler;
 import android.util.Log;
 

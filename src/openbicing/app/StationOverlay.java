@@ -38,6 +38,10 @@ public class StationOverlay extends Overlay {
 	private static final int RED_STATE_RADIUS = 30;
 	private static final int YELLOW_STATE_RADIUS = 50;
 	private static final int GREEN_STATE_RADIUS = 80;
+	
+	private Paint currentPaint;
+	private Paint currentBorderPaint;
+	private Paint selectedPaint;
 		
 	public StationOverlay(GeoPoint point,Context context, int bikes, int free, String timestamp, String id) {
 		this.point = point;
@@ -46,6 +50,22 @@ public class StationOverlay extends Overlay {
 		this.id = id;
 		this.timestamp = timestamp;
 		this.context = context;
+		
+		this.currentPaint = new Paint();
+		this.currentBorderPaint = new Paint();
+		this.selectedPaint = new Paint();
+		
+		this.currentPaint.setAntiAlias(true);
+		
+		this.currentBorderPaint.setStyle(Paint.Style.STROKE);
+		this.currentBorderPaint.setStrokeWidth(4);
+		
+		this.selectedPaint = new Paint();
+		this.selectedPaint.setARGB(75, 0,0,0);
+		this.selectedPaint.setAntiAlias(true);
+		this.selectedPaint.setStrokeWidth(2);
+		this.selectedPaint.setStyle(Paint.Style.STROKE);
+		
 		this.updateStatus();
 	}
 	
@@ -70,15 +90,20 @@ public class StationOverlay extends Overlay {
 		if (this.bikes>YELLOW_STATE_MAX){
 			this.status = GREEN_STATE;
 			this.radiusInMeters = GREEN_STATE_RADIUS;
+			this.currentPaint.setARGB(75,168,255,87);
 		}
 		else if (this.bikes>RED_STATE_MAX){
 			this.status = YELLOW_STATE;
 			this.radiusInMeters = YELLOW_STATE_RADIUS;
+			this.currentPaint.setARGB(75,255,210,72);
 	
 		}else{
 			this.status = RED_STATE;
 			this.radiusInMeters = RED_STATE_RADIUS;
+			this.currentPaint.setARGB(75,240,35,17);;
 		}
+		this.currentBorderPaint.set(this.currentPaint);
+		this.currentBorderPaint.setAlpha(100);
 	}
 	
 	public void setSelected(boolean selected){
@@ -109,32 +134,12 @@ public class StationOverlay extends Overlay {
 		Point screenPixels = astral.toPixels(this.point, null);
 		
 		RectF oval = new RectF(screenPixels.x-this.radiusInPixels,screenPixels.y-this.radiusInPixels,screenPixels.x+this.radiusInPixels,screenPixels.y+this.radiusInPixels);
-		Paint paint = new Paint();
-		if (this.status == RED_STATE)
-			paint.setARGB(75,240,35,17);
-		else if (this.status == YELLOW_STATE)
-			paint.setARGB(75,255,210,72);
-		else if (this.status == GREEN_STATE)
-			paint.setARGB(75,168,255,87);
-		else if (this.status == BLACK_STATE)
-			paint.setARGB(75,0,0,0);
-				
-		Paint paint2 = new Paint();
-		paint2.set(paint);
-		paint2.setStrokeWidth(4);
-		paint2.setAlpha(100);
-		paint2.setAntiAlias(true);
-		paint2.setStyle(Paint.Style.STROKE);
-		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels, paint2);
-		canvas.drawOval(oval,paint);
+		
+		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels, this.currentBorderPaint);
+		canvas.drawOval(oval,this.currentPaint);
 		
 		if (this.selected){
-			Paint paint3 = new Paint();
-			paint3.setARGB(75, 0,0,0);
-			paint3.setAntiAlias(true);
-			paint3.setStrokeWidth(2);
-			paint3.setStyle(Paint.Style.STROKE);
-			canvas.drawRect(screenPixels.x-this.radiusInPixels*4/3, screenPixels.y-this.radiusInPixels*4/3, screenPixels.x+this.radiusInPixels*4/3, screenPixels.y+this.radiusInPixels*4/3, paint3);
+			canvas.drawRect(screenPixels.x-this.radiusInPixels*4/3, screenPixels.y-this.radiusInPixels*4/3, screenPixels.x+this.radiusInPixels*4/3, screenPixels.y+this.radiusInPixels*4/3, this.selectedPaint);
 		}
 	}
 
