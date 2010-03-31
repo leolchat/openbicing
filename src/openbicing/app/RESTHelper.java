@@ -31,61 +31,66 @@ import org.apache.http.protocol.HttpContext;
 
 import android.content.Context;
 import android.util.Log;
-		
+
 public class RESTHelper {
-	
+
 	private final Context mCtx;
 	private final String USERNAME;
 	private final String PASSWORD;
 	private final boolean authenticated;
-	
-	public RESTHelper(Context ctx, boolean authenticated, String username, String password) {
-        this.mCtx = ctx;
-        this.authenticated = authenticated;
-        this.USERNAME = username;
-        this.PASSWORD = password;
-    }
-	
+
+	public RESTHelper(Context ctx, boolean authenticated, String username,
+			String password) {
+		this.mCtx = ctx;
+		this.authenticated = authenticated;
+		this.USERNAME = username;
+		this.PASSWORD = password;
+	}
+
 	private static String convertStreamToString(InputStream is) {
-        /*
-         * To convert the InputStream to String we use the BufferedReader.readLine()
-         * method. We iterate until the BufferedReader return null which means
-         * there's no more data to read. Each line will appended to a StringBuilder
-         * and returned as String.
-         */
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
- 
-        String line = null;
-        try {
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return sb.toString();
-    }
-	
-	private DefaultHttpClient setCredentials(DefaultHttpClient httpclient, String url) throws HttpException, IOException{
+		/*
+		 * To convert the InputStream to String we use the
+		 * BufferedReader.readLine() method. We iterate until the BufferedReader
+		 * return null which means there's no more data to read. Each line will
+		 * appended to a StringBuilder and returned as String.
+		 */
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+
+		String line = null;
+		try {
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return sb.toString();
+	}
+
+	private DefaultHttpClient setCredentials(DefaultHttpClient httpclient,
+			String url) throws HttpException, IOException {
 		HttpHost targetHost = new HttpHost(url);
-        final UsernamePasswordCredentials access = new UsernamePasswordCredentials(USERNAME,PASSWORD);
-        
-        httpclient.getCredentialsProvider().setCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()),access);
-        
-        httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
+		final UsernamePasswordCredentials access = new UsernamePasswordCredentials(
+				USERNAME, PASSWORD);
+
+		httpclient.getCredentialsProvider().setCredentials(
+				new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+				access);
+
+		httpclient.addRequestInterceptor(new HttpRequestInterceptor() {
 			@Override
 			public void process(HttpRequest request, HttpContext context)
-				throws HttpException, IOException {
-				
-				AuthState authState = (AuthState) context.getAttribute(
-					ClientContext.TARGET_AUTH_STATE);
+					throws HttpException, IOException {
+
+				AuthState authState = (AuthState) context
+						.getAttribute(ClientContext.TARGET_AUTH_STATE);
 				if (authState.getAuthScheme() == null) {
 					authState.setAuthScheme(new BasicScheme());
 					authState.setCredentials(access);
@@ -94,99 +99,96 @@ public class RESTHelper {
 		}, 0);
 		return httpclient;
 	}
-	
-	public String restGET(String url) throws ClientProtocolException, IOException, HttpException{
-		
+
+	public String restGET(String url) throws ClientProtocolException,
+			IOException, HttpException {
+
 		DefaultHttpClient httpclient = new DefaultHttpClient();
-	    if (this.authenticated){
-	    	httpclient = this.setCredentials(httpclient, url);
-	    }
-	    // Prepare a request object
-	    HttpGet httpmethod = new HttpGet(url);
-	        
-	    // Execute the request
-	    HttpResponse response;
-	        
-	    String result = null;
-	    
-	    try {
-	            response = httpclient.execute(httpmethod);
-	            // Get hold of the response entity
-	            HttpEntity entity = response.getEntity();
-	            // If the response does not enclose an entity, there is no need
-	            // to worry about connection release
-	            
-	            if (entity != null){
-	                InputStream instream = entity.getContent();
-	                result= convertStreamToString(instream);
-	                instream.close();
-	            }
-	            Log.i("shit",result);
-	        } catch (ClientProtocolException e) {
-	            // TODO Auto-generated catch block
-	            e.printStackTrace();
-	        } catch (IOException e) {
-	            // TODO Auto-generated catch block
-	            e.printStackTrace();
-	        }
-	        
-	        return result;
+		if (this.authenticated) {
+			httpclient = this.setCredentials(httpclient, url);
+		}
+		// Prepare a request object
+		HttpGet httpmethod = new HttpGet(url);
+
+		// Execute the request
+		HttpResponse response;
+
+		String result = null;
+
+		try {
+			response = httpclient.execute(httpmethod);
+			// Get hold of the response entity
+			HttpEntity entity = response.getEntity();
+			// If the response does not enclose an entity, there is no need
+			// to worry about connection release
+
+			if (entity != null) {
+				InputStream instream = entity.getContent();
+				result = convertStreamToString(instream);
+				instream.close();
+			}
+			Log.i("shit", result);
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 
+	public String restPOST(String url, Map<String, String> kvPairs)
+			throws ClientProtocolException, IOException, HttpException {
 
-	public String restPOST(String url, Map<String, String> kvPairs) throws ClientProtocolException, IOException, HttpException{
+		DefaultHttpClient httpclient = new DefaultHttpClient();
+		if (this.authenticated)
+			httpclient = this.setCredentials(httpclient, url);
 
-        DefaultHttpClient httpclient = new DefaultHttpClient();
-        if (this.authenticated)
-        	httpclient = this.setCredentials(httpclient, url);
-        
-        // Prepare a request object
-        	HttpPost httpmethod = new HttpPost(url);
-        	if (kvPairs != null && kvPairs.isEmpty() == false) { 
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>( 
-                          kvPairs.size()); 
-                String k, v; 
-                Iterator<String> itKeys = kvPairs.keySet().iterator(); 
-                while (itKeys.hasNext()) { 
-                     k = itKeys.next(); 
-                     v = kvPairs.get(k); 
-                     nameValuePairs.add(new BasicNameValuePair(k, v)); 
-                }
-                httpmethod.setEntity(new UrlEncodedFormEntity(nameValuePairs)); 
-           } 
-        
-       
-        // Execute the request
-        HttpResponse response;
-        
-        String result = null;
-        
-        
-              
-        try {
-            response = httpclient.execute(httpmethod);
-            // Examine the response status
- 
-            // Get hold of the response entity
-            HttpEntity entity = response.getEntity();
-            // If the response does not enclose an entity, there is no need
-            // to worry about connection release
-            
-            if (entity != null) {
- 
-                
-                InputStream instream = entity.getContent();
-                result= convertStreamToString(instream);
-                instream.close();
-            }
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        return result;
+		// Prepare a request object
+		HttpPost httpmethod = new HttpPost(url);
+		if (kvPairs != null && kvPairs.isEmpty() == false) {
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
+					kvPairs.size());
+			String k, v;
+			Iterator<String> itKeys = kvPairs.keySet().iterator();
+			while (itKeys.hasNext()) {
+				k = itKeys.next();
+				v = kvPairs.get(k);
+				nameValuePairs.add(new BasicNameValuePair(k, v));
+			}
+			httpmethod.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		}
+
+		// Execute the request
+		HttpResponse response;
+
+		String result = null;
+
+		try {
+			response = httpclient.execute(httpmethod);
+			// Examine the response status
+
+			// Get hold of the response entity
+			HttpEntity entity = response.getEntity();
+			// If the response does not enclose an entity, there is no need
+			// to worry about connection release
+
+			if (entity != null) {
+
+				InputStream instream = entity.getContent();
+				result = convertStreamToString(instream);
+				instream.close();
+			}
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 }

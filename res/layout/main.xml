@@ -7,26 +7,27 @@
 		android:layout_width="fill_parent" android:layout_height="fill_parent"
 		android:clickable="true" android:apiKey="0M6iRHXUjmWBHgd0HYv7WNqm70Wq1XPVLhH275A" />
 	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:orientation="vertical" android:gravity="top">
-
 		<openbicing.app.InfoLayer android:id="@+id/info_layer"
 			android:layout_width="fill_parent" android:layout_height="wrap_content"
 			android:paddingTop="5px" android:paddingLeft="5px"
-			android:paddingBottom="5px" android:paddingRight="5px">
-<LinearLayout android:id="@+id/LinearLayout01"
+			android:background="@drawable/fancy_gradient" android:paddingBottom="5px"
+			android:paddingRight="5px">
+			<LinearLayout android:id="@+id/LinearLayout01"
 				android:layout_width="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
-				android:orientation="horizontal" android:layout_height="wrap_content">
-				<Button android:text="@string/prev_station" android:id="@+id/prev_station"
+				android:orientation="horizontal" android:layout_height="fill_parent">
+				<ImageButton android:text="@string/prev_station" android:id="@+id/prev_station"
 					android:layout_width="wrap_content" android:layout_height="fill_parent"
-					android:layout_weight="0" />
+					android:layout_weight="0" android:gravity="center"
+					android:src="@android:drawable/ic_media_rew"/>
 				<LinearLayout android:id="@+id/LinearLayout02"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"
 					android:orientation="vertical" android:layout_weight="1">
 
 					<TextView android:text="356 - Balcells" android:id="@+id/station_id"
 						android:layout_height="wrap_content" android:layout_width="fill_parent"
-						android:gravity="center" />
+						android:gravity="center" android:textAppearance="?android:attr/textAppearanceSmall" />
 
 					<LinearLayout android:id="@+id/LinearLayout03"
 						android:layout_width="fill_parent" android:layout_height="wrap_content"
@@ -34,31 +35,29 @@
 						<LinearLayout android:id="@+id/LinearLayout04"
 							android:layout_height="wrap_content" android:layout_width="fill_parent">
 							<TextView android:text="0 Bikes / 27 Spaces" android:id="@+id/ocupation"
-								android:gravity="center"
-								android:layout_width="fill_parent" android:layout_height="wrap_content" />
+								android:gravity="center" android:layout_width="fill_parent"
+								android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium"/>
 						</LinearLayout>
 						<LinearLayout android:id="@+id/LinearLayout05"
 							android:layout_width="fill_parent" android:layout_height="wrap_content"
-							android:orientation="horizontal" android:gravity="center"
-							>
+							android:orientation="horizontal" android:gravity="center">
 							<TextView android:text="150m" android:id="@+id/distance"
-								android:layout_width="wrap_content" android:layout_height="wrap_content" 
-								/>
+								android:layout_width="wrap_content" android:layout_height="wrap_content" />
 							<TextView android:text="1 min" android:id="@+id/walking_time"
-								android:layout_width="wrap_content" android:layout_height="wrap_content"
-								/>
+								android:layout_width="wrap_content" android:layout_height="wrap_content" />
 						</LinearLayout>
 					</LinearLayout>
-
 				</LinearLayout>
-				<Button android:text="@string/next_station" android:id="@+id/next_station"
+				<ImageButton android:text="@string/next_station" android:id="@+id/next_station"
 					android:layout_width="wrap_content" android:layout_height="fill_parent"
-					android:layout_weight="0" />
+					android:layout_weight="0" android:gravity="center"
+					android:src="@android:drawable/ic_media_ff"/>
 			</LinearLayout>
-			
-
 		</openbicing.app.InfoLayer>
-
-
-	</LinearLayout>
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_width="fill_parent" android:layout_height="8px"
+		android:background="@drawable/shadow"
+		android:orientation="vertical" android:gravity="bottom">
+			</LinearLayout>
+</LinearLayout>
 </FrameLayout>
