@@ -158,8 +158,11 @@ public class MainActivity extends MapActivity {
 		});
 
 		StationOverlay current = stations.getCurrent();
-		current.setSelected(true);
-		infoLayer.populateFields(current);
+		if (current!=null){
+				current.setSelected(true);
+				infoLayer.populateFields(current);
+		}
+		
 	}
 
 	private void fillData(boolean all) {

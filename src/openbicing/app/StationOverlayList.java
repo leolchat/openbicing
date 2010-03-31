@@ -106,7 +106,10 @@ public class StationOverlayList {
 	}
 
 	public StationOverlay getCurrent() {
-		return (StationOverlay) mapOverlays.get(current);
+		if (current!=-1)
+			return (StationOverlay) mapOverlays.get(current);
+		else
+			return null;
 	}
 
 	public StationOverlay selectNext() {
