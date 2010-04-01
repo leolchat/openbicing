@@ -42,7 +42,9 @@
 							android:layout_width="fill_parent" android:layout_height="wrap_content"
 							android:orientation="horizontal" android:gravity="center">
 							<TextView android:text="150m" android:id="@+id/distance"
-								android:layout_width="wrap_content" android:layout_height="wrap_content" />
+								android:layout_width="wrap_content" android:layout_height="wrap_content"
+								android:layout_marginRight="10px"
+								 />
 							<TextView android:text="1 min" android:id="@+id/walking_time"
 								android:layout_width="wrap_content" android:layout_height="wrap_content" />
 						</LinearLayout>

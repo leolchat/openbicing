@@ -16,6 +16,7 @@ import openbicing.utils.CircleHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import uk.me.jstott.jcoord.LatLng;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -151,14 +152,14 @@ public class StationsDBAdapter implements Runnable {
 		Collection<StationOverlay> everything = stationsMemoryMap.values();
 		Iterator<StationOverlay> i = everything.iterator();
 		StationOverlay tmp;
+		LatLng cnt = new LatLng(center.getLatitudeE6()/1E6,center.getLongitudeE6()/1E6);
+		LatLng tmpLL;
 		while (i.hasNext()) {
 			tmp = i.next();
+			tmpLL = new LatLng(tmp.getCenter().getLatitudeE6()/1E6, tmp.getCenter().getLongitudeE6()/1E6);
 			if (CircleHelper.isOnCircle(tmp.getCenter(), center, radius)) {
-				double number = Math.sqrt(Math.pow(center.getLatitudeE6()
-						- tmp.getCenter().getLatitudeE6(), 2)
-						+ Math.pow(center.getLongitudeE6()
-								- tmp.getCenter().getLongitudeE6(), 2));
-				tmp.setGradialSeparation(number);
+				tmp.setGradialSeparation(CircleHelper.gradialDistance(center, tmp.getCenter()));
+				tmp.setKmDistance(cnt.distance(tmpLL));
 				stationsDisplayList.addStationOverlay(tmp);
 			}
 		}
