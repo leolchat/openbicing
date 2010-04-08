@@ -25,6 +25,7 @@ import android.os.Handler;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
+import com.google.android.maps.Projection;
 
 public class StationsDBAdapter implements Runnable {
 
@@ -146,7 +147,7 @@ public class StationsDBAdapter implements Runnable {
 		stationsDisplayList.updatePositions();
 		mapView.postInvalidate();
 	}
-
+	
 	public void populateStations(GeoPoint center, int radius) throws Exception {
 		stationsDisplayList.clear();
 		Collection<StationOverlay> everything = stationsMemoryMap.values();
@@ -154,12 +155,13 @@ public class StationsDBAdapter implements Runnable {
 		StationOverlay tmp;
 		LatLng cnt = new LatLng(center.getLatitudeE6()/1E6,center.getLongitudeE6()/1E6);
 		LatLng tmpLL;
+		double error = 0.1;
 		while (i.hasNext()) {
 			tmp = i.next();
 			tmpLL = new LatLng(tmp.getCenter().getLatitudeE6()/1E6, tmp.getCenter().getLongitudeE6()/1E6);
 			if (CircleHelper.isOnCircle(tmp.getCenter(), center, radius)) {
 				tmp.setGradialSeparation(CircleHelper.gradialDistance(center, tmp.getCenter()));
-				tmp.setKmDistance(cnt.distance(tmpLL));
+				tmp.setKmDistance(cnt.distance(tmpLL)+error);
 				stationsDisplayList.addStationOverlay(tmp);
 			}
 		}

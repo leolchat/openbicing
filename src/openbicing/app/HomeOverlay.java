@@ -2,6 +2,7 @@ package openbicing.app;
 
 import java.util.List;
 
+import uk.me.jstott.jcoord.LatLng;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -229,7 +230,7 @@ public class HomeOverlay extends Overlay {
 						- x), 2)
 						+ Math.pow(Math.abs(this.centerYInPixels - y), 2));
 				this.radiusInMeters = (int) ((int) (dist * this.radiusInMeters) / this.radiusInPixels);
-
+				
 				// Recalculate angle
 				float opp = this.centerYInPixels - y;
 				float adj = this.centerXInPixels - x;
