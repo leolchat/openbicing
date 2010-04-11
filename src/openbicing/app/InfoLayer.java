@@ -82,7 +82,7 @@ public class InfoLayer extends LinearLayout {
 			this.ocupation.setText(this.station.getBikes()+" bikes / "+station.getFree()+" free");
 			int meters, km;
 			double rawMeters;
-			rawMeters = this.station.getKmDistance()*1000;
+			rawMeters = this.station.getMetersDistance();
 			km = (int) rawMeters/1000;
 			meters = (int) rawMeters - (1000*km);
 			Log.i("openBicing",Integer.toString(km)+" "+Integer.toString(meters));
@@ -92,7 +92,7 @@ public class InfoLayer extends LinearLayout {
 			}
 			distanceText = distanceText + Integer.toString(meters)+" m";
 			this.distance.setText(distanceText);
-			double rawMinutes = (this.station.getKmDistance()/5)*60;
+			double rawMinutes = (this.station.getMetersDistance()/5)*60;
 			
 			int hours, minutes;
 			hours = (int) rawMinutes / 60;

@@ -2,7 +2,6 @@ package openbicing.app;
 
 import java.util.List;
 
-import uk.me.jstott.jcoord.LatLng;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;

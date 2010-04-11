@@ -50,7 +50,7 @@ public class StationOverlay extends Overlay {
 	private Paint selectedPaint;
 
 	private double gradialSeparation;
-	private double kmDistance;
+	private double metersDistance;
 
 	private int position = -1;
 
@@ -93,12 +93,12 @@ public class StationOverlay extends Overlay {
 		return this.id;
 	}
 	
-	public double getKmDistance(){
-		return this.kmDistance;
+	public double getMetersDistance(){
+		return this.metersDistance;
 	}
 	
-	public void setKmDistance(double distance){
-		this.kmDistance = distance;
+	public void setMetersDistance(double distance){
+		this.metersDistance = distance;
 	}
 	
 	public int getBikes() {

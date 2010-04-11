@@ -16,7 +16,6 @@ import openbicing.utils.CircleHelper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import uk.me.jstott.jcoord.LatLng;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -25,7 +24,6 @@ import android.os.Handler;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.Projection;
 
 public class StationsDBAdapter implements Runnable {
 
@@ -153,15 +151,11 @@ public class StationsDBAdapter implements Runnable {
 		Collection<StationOverlay> everything = stationsMemoryMap.values();
 		Iterator<StationOverlay> i = everything.iterator();
 		StationOverlay tmp;
-		LatLng cnt = new LatLng(center.getLatitudeE6()/1E6,center.getLongitudeE6()/1E6);
-		LatLng tmpLL;
-		double error = 0.1;
 		while (i.hasNext()) {
 			tmp = i.next();
-			tmpLL = new LatLng(tmp.getCenter().getLatitudeE6()/1E6, tmp.getCenter().getLongitudeE6()/1E6);
 			if (CircleHelper.isOnCircle(tmp.getCenter(), center, radius)) {
 				tmp.setGradialSeparation(CircleHelper.gradialDistance(center, tmp.getCenter()));
-				tmp.setKmDistance(cnt.distance(tmpLL)+error);
+				tmp.setMetersDistance(CircleHelper.gp2m(center, tmp.getCenter()));
 				stationsDisplayList.addStationOverlay(tmp);
 			}
 		}
