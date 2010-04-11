@@ -41,9 +41,10 @@ public class StationOverlay extends Overlay {
 	private static final int RED_STATE_MAX = 0;
 	private static final int YELLOW_STATE_MAX = 8;
 
-	private static final int RED_STATE_RADIUS = 30;
-	private static final int YELLOW_STATE_RADIUS = 50;
+	private static final int RED_STATE_RADIUS = 80;
+	private static final int YELLOW_STATE_RADIUS = 80;
 	private static final int GREEN_STATE_RADIUS = 80;
+	private static final int SELECTED_STATE_RADIUS = 120;
 
 	private Paint currentPaint;
 	private Paint currentBorderPaint;
@@ -75,7 +76,7 @@ public class StationOverlay extends Overlay {
 		this.selectedPaint = new Paint();
 		this.selectedPaint.setARGB(75, 0, 0, 0);
 		this.selectedPaint.setAntiAlias(true);
-		this.selectedPaint.setStrokeWidth(2);
+		this.selectedPaint.setStrokeWidth(4);
 		this.selectedPaint.setStyle(Paint.Style.STROKE);
 
 		this.updateStatus();
@@ -135,6 +136,10 @@ public class StationOverlay extends Overlay {
 
 	public void setSelected(boolean selected) {
 		this.selected = selected;
+		if (this.selected)
+			this.radiusInMeters = SELECTED_STATE_RADIUS;
+		else
+			updateStatus();
 	}
 
 	public void update() {
@@ -175,16 +180,14 @@ public class StationOverlay extends Overlay {
 						+ this.radiusInPixels, screenPixels.y
 						+ this.radiusInPixels);
 
-		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels,
-				this.currentBorderPaint);
 		canvas.drawOval(oval, this.currentPaint);
 
 		if (this.selected) {
-			canvas.drawRect(screenPixels.x - this.radiusInPixels * 4 / 3,
-					screenPixels.y - this.radiusInPixels * 4 / 3,
-					screenPixels.x + this.radiusInPixels * 4 / 3,
-					screenPixels.y + this.radiusInPixels * 4 / 3,
+			canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels,
 					this.selectedPaint);
+		}else{
+			canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels,
+					this.currentBorderPaint);
 		}
 	}
 

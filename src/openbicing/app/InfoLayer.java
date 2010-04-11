@@ -92,7 +92,7 @@ public class InfoLayer extends LinearLayout {
 			}
 			distanceText = distanceText + Integer.toString(meters)+" m";
 			this.distance.setText(distanceText);
-			double rawMinutes = (this.station.getMetersDistance()/5)*60;
+			double rawMinutes = (this.station.getMetersDistance()/5000)*60;
 			
 			int hours, minutes;
 			hours = (int) rawMinutes / 60;
