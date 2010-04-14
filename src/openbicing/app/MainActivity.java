@@ -139,13 +139,12 @@ public class MainActivity extends MapActivity {
 				if (tmp != null) {
 					infoLayer.populateFields(tmp);
 					mapView.postInvalidate();
+					mapView.getController().animateTo(tmp.getCenter());
 				}
 			}
 		};
 
-		infoLayer.setElements((ImageButton) findViewById(R.id.next_station),
-				(ImageButton) findViewById(R.id.prev_station),
-				(TextView) findViewById(R.id.station_id),
+		infoLayer.setElements((TextView) findViewById(R.id.station_id),
 				(TextView) findViewById(R.id.ocupation),
 				(TextView) findViewById(R.id.distance),
 				(TextView) findViewById(R.id.walking_time), infoHandler);

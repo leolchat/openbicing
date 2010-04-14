@@ -94,12 +94,13 @@ public class StationsDBAdapter implements Runnable {
 		GeoPoint point;
 		for (int i = 0; i < stations.length(); i++) {
 			station = stations.getJSONObject(i);
+			id = station.getString("name");
 			lat = Integer.parseInt(station.getString("y"));
 			lng = Integer.parseInt(station.getString("x"));
 			bikes = station.getInt("bikes");
 			free = station.getInt("free");
 			timestamp = station.getString("timestamp");
-			id = station.getString("name");
+			
 			point = new GeoPoint(lat, lng);
 			StationOverlay memoryStation = new StationOverlay(point, mCtx,
 					bikes, free, timestamp, id);

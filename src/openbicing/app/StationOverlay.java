@@ -28,10 +28,10 @@ public class StationOverlay extends Overlay {
 
 	private GeoPoint point;
 
-	private static final int BLACK_STATE = 0;
-	private static final int RED_STATE = 1;
-	private static final int YELLOW_STATE = 2;
-	private static final int GREEN_STATE = 3;
+	public static final int BLACK_STATE = 0;
+	public  static final int RED_STATE = 1;
+	public  static final int YELLOW_STATE = 2;
+	public  static final int GREEN_STATE = 3;
 
 	public static final int TOUCHED = 10;
 
@@ -100,6 +100,10 @@ public class StationOverlay extends Overlay {
 	
 	public void setMetersDistance(double distance){
 		this.metersDistance = distance;
+	}
+	
+	public int getState(){
+		return this.status;
 	}
 	
 	public int getBikes() {
