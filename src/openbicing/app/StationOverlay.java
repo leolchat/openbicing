@@ -50,7 +50,7 @@ public class StationOverlay extends Overlay {
 	private Paint currentBorderPaint;
 	private Paint selectedPaint;
 
-	private double gradialSeparation;
+	
 	private double metersDistance;
 
 	private int position = -1;
@@ -154,14 +154,6 @@ public class StationOverlay extends Overlay {
 	private void calculatePixelRadius(MapView mapView) {
 		this.radiusInPixels = (int) mapView.getProjection()
 				.metersToEquatorPixels(this.radiusInMeters);
-	}
-
-	public void setGradialSeparation(double number) {
-		this.gradialSeparation = number;
-	}
-
-	public double getGradialSeparation() {
-		return this.gradialSeparation;
 	}
 
 	@Override

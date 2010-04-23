@@ -12,19 +12,18 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.GestureDetector.SimpleOnGestureListener;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 
 public class InfoLayer extends LinearLayout {
 	
 	private static final int SWIPE_MIN_DISTANCE = 120;
-    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_MAX_OFF_PATH = 100;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-
+    
+    private static final double ERROR_COEFICIENT = 0.35;
     private GestureDetector gestureDetector;
     View.OnTouchListener gestureListener;
 
@@ -41,8 +40,8 @@ public class InfoLayer extends LinearLayout {
 	
 	private BitmapDrawable green, red, yellow;
 	
-	public static final int NEXT_STATION = 0;
-	public static final int PREV_STATION = 1;
+	public static final int NEXT_STATION = 200;
+	public static final int PREV_STATION = 201;
 	
 	public InfoLayer(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -102,7 +101,7 @@ public class InfoLayer extends LinearLayout {
 			this.ocupation.setText(this.station.getBikes()+" bikes / "+station.getFree()+" free");
 			int meters, km;
 			double rawMeters;
-			rawMeters = this.station.getMetersDistance();
+			rawMeters = this.station.getMetersDistance()+this.station.getMetersDistance()*ERROR_COEFICIENT;
 			km = (int) rawMeters/1000;
 			meters = (int) rawMeters - (1000*km);
 			Log.i("openBicing",Integer.toString(km)+" "+Integer.toString(meters));
@@ -112,7 +111,7 @@ public class InfoLayer extends LinearLayout {
 			}
 			distanceText = distanceText + Integer.toString(meters)+" m";
 			this.distance.setText(distanceText);
-			double rawMinutes = (this.station.getMetersDistance()/5000)*60;
+			double rawMinutes = (rawMeters/5000)*60;
 			
 			int hours, minutes;
 			hours = (int) rawMinutes / 60;
@@ -168,13 +167,15 @@ public class InfoLayer extends LinearLayout {
 	    @Override
 	    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 	        try {
-	            if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
-	                return false;
+	            if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH){
+	            	Log.i("openBicing","down?");
+	            	return false;
+	            }
 	            // right to left swipe
 	            if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-	            	handler.sendEmptyMessage(PREV_STATION);
+	            	handler.sendEmptyMessage(NEXT_STATION);
 	            }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-	                handler.sendEmptyMessage(NEXT_STATION);
+	                handler.sendEmptyMessage(PREV_STATION);
 	            }
 	        } catch (Exception e) {
 	            // nothing

@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +42,7 @@ public class MainActivity extends MapActivity {
 		List<Overlay> mapOverlays = mapView.getOverlays();
 
 		Handler paintHandler = new Handler() {
+			@Override
 			public void handleMessage(Message msg) {
 				if (msg.what == hOverlay.MOTION_CIRCLE_STOP && !view_all) {
 					try {
@@ -55,6 +55,8 @@ public class MainActivity extends MapActivity {
 							+ Integer.toString(msg.arg1));
 					stations.setCurrent(msg.arg1);
 					infoLayer.populateFields(stations.getCurrent());
+				}else if (msg.what == hOverlay.LOCATION_CHANGED){
+					mDbHelper.setCenter(hOverlay.getPoint());
 				}
 			}
 		};
@@ -62,6 +64,7 @@ public class MainActivity extends MapActivity {
 		stations = new StationOverlayList(this, mapOverlays, paintHandler);
 
 		Handler handler = new Handler() {
+			@Override
 			public void handleMessage(Message msg) {
 				switch (msg.what) {
 				case StationsDBAdapter.FETCH:
@@ -70,6 +73,22 @@ public class MainActivity extends MapActivity {
 				case StationsDBAdapter.UPDATE_MAP:
 					Log.i("openBicing", "Map Updated");
 					progressDialog.dismiss();
+					StationOverlay current = stations.getCurrent();
+					if (current==null){
+							view_all = true;
+							view_all();
+							Toast toast = Toast.makeText(getApplicationContext(),
+									"No bikes around you, so I am showing all of them :D ",Toast.LENGTH_LONG);
+							toast.show();
+							current = stations.getCurrent();
+					}
+					if (current!=null){
+						current.setSelected(true);
+						infoLayer.populateFields(current);
+					}else{
+						Log.i("openBicing","Error getting an station..");
+					}
+					mapView.invalidate();
 					break;
 				case StationsDBAdapter.UPDATE_DATABASE:
 					Log.i("openBicing", "Database updated");
@@ -87,6 +106,7 @@ public class MainActivity extends MapActivity {
 			}
 		};
 		mDbHelper = new StationsDBAdapter(this, mapView, handler, stations);
+		mDbHelper.setCenter(stations.getHome().getPoint());
 		if (savedInstanceState != null) {
 			stations.updateHome();
 			stations.getHome().setRadius(
@@ -124,6 +144,7 @@ public class MainActivity extends MapActivity {
 		infoLayer = (InfoLayer) findViewById(R.id.info_layer);
 
 		Handler infoHandler = new Handler() {
+			@Override
 			public void handleMessage(Message msg) {
 				StationOverlay tmp;
 				switch (msg.what) {
@@ -268,6 +289,7 @@ public class MainActivity extends MapActivity {
 		Log.i("openBicing", "RESUME!");
 	}
 
+	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		Log.i("openBicing", "SaveInstanceState!");
 		outState.putInt("homeRadius", stations.getHome().getRadius());

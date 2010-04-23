@@ -3,7 +3,6 @@ package openbicing.app;
 import java.util.List;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.os.Handler;
 import android.util.Log;
 
@@ -44,18 +43,30 @@ public class StationOverlayList {
 			this.first = 0;
 		}
 	}
+	
+	public StationOverlay get(int position){
+		if (mapOverlays.get(position) instanceof StationOverlay){
+			return (StationOverlay) mapOverlays.get(position);
+		}else{
+			return null;
+		}
+	}
 
 	public void setCurrent(int position) {
-		if (this.last != null)
+		StationOverlay sht;
+		if (this.last != null && this.last instanceof StationOverlay)
 			this.last.setSelected(false);
 		else {
-			StationOverlay sht = (StationOverlay) mapOverlays.get(current);
-			sht.setSelected(false);
+			sht = get(position);
+			if (sht!=null)
+				sht.setSelected(false);
 		}
 		this.current = position;
-		this.last = (StationOverlay) mapOverlays.get(current);
-		this.last.setSelected(true);
-
+		sht = get(position);
+		if (sht!=null){
+			this.last = sht;
+			this.last.setSelected(true);
+		}
 	}
 
 	public void updatePositions() {
@@ -68,6 +79,7 @@ public class StationOverlayList {
 			}
 			i++;
 		}
+		
 	}
 
 	public void addHome() {
@@ -86,9 +98,6 @@ public class StationOverlayList {
 		StationOverlay station = (StationOverlay) this.mapOverlays
 				.get(location);
 		station.update();
-		// TODO: Roc Boronat: He comentat la línia de sota, ja que en teoria
-		// sobra. Provar si funciona! :)
-		// this.mapOverlays.set(location, station);
 	}
 
 	public void updateHome() {
@@ -106,9 +115,16 @@ public class StationOverlayList {
 	}
 
 	public StationOverlay getCurrent() {
-		if (current!=-1)
-			return (StationOverlay) mapOverlays.get(current);
-		else
+		if (current!=-1){
+			if(mapOverlays.size()>1){
+				if (!(mapOverlays.get(current) instanceof StationOverlay))
+					current++;
+				this.last = (StationOverlay) mapOverlays.get(current);
+				return (StationOverlay) mapOverlays.get(current);
+			}else{
+				return null;
+			}
+		}else
 			return null;
 	}
 
@@ -130,8 +146,6 @@ public class StationOverlayList {
 			StationOverlay res = (StationOverlay) mapOverlays.get(current);
 			res.setSelected(true);
 			last = res;
-			Log.i("openBicing", "Magic Number: "
-					+ Double.toString(res.getGradialSeparation()));
 			return res;
 		} else
 			return null;
@@ -145,6 +159,7 @@ public class StationOverlayList {
 			StationOverlay sht = (StationOverlay) mapOverlays.get(current);
 			sht.setSelected(false);
 		}
+		
 		do {
 			current--;
 			if (current < 0) {

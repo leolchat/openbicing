@@ -13,6 +13,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
@@ -22,7 +23,8 @@ import com.google.android.maps.Projection;
 
 public class HomeOverlay extends Overlay {
 
-	public final int MOTION_CIRCLE_STOP = 1;
+	public final int MOTION_CIRCLE_STOP = 100;
+	public final int LOCATION_CHANGED = 101;
 	private Context context;
 	private GeoPoint point;
 
@@ -49,31 +51,33 @@ public class HomeOverlay extends Overlay {
 				.getSystemService(Context.LOCATION_SERVICE);
 		List<String> providers = locationManager.getProviders(true);
 		for (int i = 0; i < providers.size(); i++) {
-			locationManager.requestLocationUpdates(providers.get(i), 20000, 25,
+			locationManager.requestLocationUpdates(providers.get(i), 10000, 25,
 					new LocationListener() {
 						@Override
 						public void onLocationChanged(Location location) {
 							// TODO Auto-generated method stub
 							update(location);
+							Log.i("openBicing","Location has changed");
 						}
 
 						@Override
 						public void onProviderDisabled(String provider) {
 							// TODO Auto-generated method stub
+							Log.i("openBicing",provider+" is disabled");
 
 						}
 
 						@Override
 						public void onProviderEnabled(String provider) {
 							// TODO Auto-generated method stub
-
+							Log.i("openBicing",provider+" is enabled");
 						}
 
 						@Override
 						public void onStatusChanged(String provider,
 								int status, Bundle extras) {
 							// TODO Auto-generated method stub
-
+							Log.i("openBicing",provider+" status Changed");
 						}
 
 					});
@@ -95,6 +99,7 @@ public class HomeOverlay extends Overlay {
 		Double lat = location.getLatitude() * 1E6;
 		Double lng = location.getLongitude() * 1E6;
 		this.point = new GeoPoint(lat.intValue(), lng.intValue());
+		handler.sendEmptyMessage(LOCATION_CHANGED);
 	}
 
 	public void setRadius(int meters) {
@@ -115,7 +120,7 @@ public class HomeOverlay extends Overlay {
 		// TODO Auto-generated method stub
 		Projection astral = mapView.getProjection();
 		Point screenPixels = astral.toPixels(this.point, null);
-		this.radiusInPixels = (float) astral
+		this.radiusInPixels = astral
 				.metersToEquatorPixels(this.radiusInMeters);
 		this.centerXInPixels = screenPixels.x;
 		this.centerYInPixels = screenPixels.y;
@@ -133,7 +138,10 @@ public class HomeOverlay extends Overlay {
 		paint.setAlpha(20);
 		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels,
 				paint);
-
+	     
+        
+        
+		
 		Paint txtPaint = new Paint();
 		txtPaint.setARGB(255, 255, 255, 255);
 		txtPaint.setAntiAlias(true);
@@ -161,7 +169,7 @@ public class HomeOverlay extends Overlay {
 		canvas.drawPath(tPath, txtPaint);
 
 		drawArrow(canvas, screenPixels, this.radiusInPixels, angle);
-
+		
 		return super.draw(canvas, mapView, shadow, when);
 	}
 

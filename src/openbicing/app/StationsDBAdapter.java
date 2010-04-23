@@ -2,10 +2,8 @@ package openbicing.app;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,10 +18,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
 
 public class StationsDBAdapter implements Runnable {
 
@@ -43,7 +41,7 @@ public class StationsDBAdapter implements Runnable {
 
 	private StationOverlayList stationsDisplayList;
 
-	private HashMap<String, StationOverlay> stationsMemoryMap;
+	private List<StationOverlay> stationsMemoryMap;
 
 	private RESTHelper mRESTHelper;
 
@@ -60,6 +58,8 @@ public class StationsDBAdapter implements Runnable {
 	private String RAWstations;
 
 	private String last_updated;
+	
+	private GeoPoint center;
 
 	public StationsDBAdapter(Context ctx, MapView mapView, Handler handler,
 			StationOverlayList stationsDisplayList) {
@@ -71,7 +71,6 @@ public class StationsDBAdapter implements Runnable {
 		this.mRESTHelper = new RESTHelper(this.mCtx, false, null, null);
 
 		this.toDo = new LinkedList();
-		this.stationsMemoryMap = new HashMap<String, StationOverlay>();
 	}
 
 	public String fetchStations(String provider) throws Exception {
@@ -82,12 +81,20 @@ public class StationsDBAdapter implements Runnable {
 		return last_updated;
 	}
 
+	public void setCenter(GeoPoint point){
+		this.center = point;
+	}
+	
 	public void loadStations() throws Exception {
 		this.retrieve();
-		buildMemory(new JSONArray(this.RAWstations));
+		if (this.center!=null)
+			buildMemory(new JSONArray(this.RAWstations),this.center);
+		else
+			buildMemory(new JSONArray(this.RAWstations));
 	}
 
 	public void buildMemory(JSONArray stations) throws Exception {
+		this.stationsMemoryMap = new LinkedList <StationOverlay>();
 		JSONObject station = null;
 		int lat, lng, bikes, free;
 		String timestamp, id;
@@ -104,8 +111,56 @@ public class StationsDBAdapter implements Runnable {
 			point = new GeoPoint(lat, lng);
 			StationOverlay memoryStation = new StationOverlay(point, mCtx,
 					bikes, free, timestamp, id);
-			stationsMemoryMap.put(id, memoryStation);
+			stationsMemoryMap.add(memoryStation);
 		}
+	}
+	
+	public void buildMemory(JSONArray stations, GeoPoint center) throws Exception{
+		this.stationsMemoryMap = new LinkedList <StationOverlay>();
+		JSONObject station = null;
+		int lat, lng, bikes, free;
+		String timestamp, id;
+		GeoPoint point;
+		for (int i = 0; i < stations.length(); i++) {
+			station = stations.getJSONObject(i);
+			id = station.getString("name");
+			lat = Integer.parseInt(station.getString("y"));
+			lng = Integer.parseInt(station.getString("x"));
+			bikes = station.getInt("bikes");
+			free = station.getInt("free");
+			timestamp = station.getString("timestamp");
+			
+			point = new GeoPoint(lat, lng);
+			StationOverlay memoryStation = new StationOverlay(point, mCtx,
+					bikes, free, timestamp, id);
+			memoryStation.setMetersDistance(CircleHelper.gp2m(center, point));
+			stationsMemoryMap.add(memoryStation);
+		}
+		
+		Collections.sort(stationsMemoryMap,
+				new Comparator() {
+					public int compare(Object o1, Object o2) {
+						if (o1 instanceof StationOverlay
+								&& o2 instanceof StationOverlay) {
+							StationOverlay stat1 = (StationOverlay) o1;
+							StationOverlay stat2 = (StationOverlay) o2;
+							if (stat1.getMetersDistance() > stat2
+									.getMetersDistance())
+								return 1;
+							else
+								return -1;
+						} else {
+							if (o1 instanceof HomeOverlay) {
+								return 1;
+							} else if (o2 instanceof HomeOverlay) {
+								return -1;
+							} else {
+								return 0;
+							}
+						}
+					}
+				});
+		Log.i("openBicing","Building Memory with distances and order...");
 	}
 
 	public void store() {
@@ -138,8 +193,7 @@ public class StationsDBAdapter implements Runnable {
 
 	public void populateStations() throws Exception {
 		stationsDisplayList.clear();
-		Collection<StationOverlay> everything = stationsMemoryMap.values();
-		Iterator<StationOverlay> i = everything.iterator();
+		Iterator<StationOverlay> i = stationsMemoryMap.iterator();
 		while (i.hasNext()) {
 			stationsDisplayList.addStationOverlay(i.next());
 		}
@@ -149,41 +203,14 @@ public class StationsDBAdapter implements Runnable {
 	
 	public void populateStations(GeoPoint center, int radius) throws Exception {
 		stationsDisplayList.clear();
-		Collection<StationOverlay> everything = stationsMemoryMap.values();
-		Iterator<StationOverlay> i = everything.iterator();
+		Iterator<StationOverlay> i = stationsMemoryMap.iterator();
 		StationOverlay tmp;
 		while (i.hasNext()) {
 			tmp = i.next();
-			if (CircleHelper.isOnCircle(tmp.getCenter(), center, radius)) {
-				tmp.setGradialSeparation(CircleHelper.gradialDistance(center, tmp.getCenter()));
-				tmp.setMetersDistance(CircleHelper.gp2m(center, tmp.getCenter()));
+			if ((tmp.getMetersDistance()+tmp.getMetersDistance()*0.35)<=radius){
 				stationsDisplayList.addStationOverlay(tmp);
 			}
-		}
-
-		Collections.sort((List<Overlay>) stationsDisplayList.getList(),
-				new Comparator() {
-					public int compare(Object o1, Object o2) {
-						if (o1 instanceof StationOverlay
-								&& o2 instanceof StationOverlay) {
-							StationOverlay stat1 = (StationOverlay) o1;
-							StationOverlay stat2 = (StationOverlay) o2;
-							if (stat1.getGradialSeparation() > stat2
-									.getGradialSeparation())
-								return 1;
-							else
-								return -1;
-						} else {
-							if (o1 instanceof HomeOverlay) {
-								return 1;
-							} else if (o2 instanceof HomeOverlay) {
-								return -1;
-							} else {
-								return 0;
-							}
-						}
-					}
-				});
+		}		
 		stationsDisplayList.updatePositions();
 		mapView.postInvalidate();
 	}
@@ -191,7 +218,7 @@ public class StationsDBAdapter implements Runnable {
 	@Override
 	public void run() {
 		while (!toDo.isEmpty()) {
-			Integer action = (Integer) toDo.poll();
+			Integer action = toDo.poll();
 			switch (action) {
 			case FETCH:
 				try {
@@ -201,12 +228,12 @@ public class StationsDBAdapter implements Runnable {
 							TIMESTAMP_FORMAT);
 					Calendar cal = Calendar.getInstance();
 					last_updated = sdf.format(cal.getTime());
-					buildMemory(new JSONArray(RAWstations));
+					buildMemory(new JSONArray(RAWstations),this.center);
 				} catch (Exception fetchError) {
 					handlerOut.sendEmptyMessage(NETWORK_ERROR);
 					try {
 						retrieve();
-						buildMemory(new JSONArray(RAWstations));
+						buildMemory(new JSONArray(RAWstations),this.center);
 					} catch (Exception internalError) {
 						// FUCK EVERYTHING!
 					}
