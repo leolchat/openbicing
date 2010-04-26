@@ -1,4 +1,5 @@
 <bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/green_gradient_image" 
-    android:tileMode="repeat" 
+    android:src="@drawable/green_gradient_image"
+    android:tileMode="repeat"
+    android:height="60px"
     />

@@ -1,5 +1,6 @@
 package openbicing.app;
 
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
@@ -150,6 +151,21 @@ public class StationOverlayList {
 		} else
 			return null;
 
+	}
+	
+	public StationOverlay findById(int id){
+		Iterator i = mapOverlays.iterator();
+		StationOverlay tmp;
+		Object aws;
+		while(i.hasNext()){
+			aws = i.next();
+			if(aws instanceof StationOverlay){
+				tmp = (StationOverlay) aws;
+				if (tmp.getId() == id)
+					return tmp;
+			}
+		}
+		return null;
 	}
 
 	public StationOverlay selectPrevious() {

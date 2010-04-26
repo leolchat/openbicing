@@ -5,22 +5,29 @@
 	<com.google.android.maps.MapView
 		xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/mapview"
 		android:layout_width="fill_parent" android:layout_height="fill_parent"
-		android:clickable="true" android:apiKey="0M6iRHXUjmWBHgd0HYv7WNqm70Wq1XPVLhH275A" />
+		android:clickable="true" android:apiKey="0M6iRHXUjmWBHgd0HYv7WNqm70Wq1XPVLhH275A" >
+		</com.google.android.maps.MapView> 
 	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
 		android:orientation="vertical" android:gravity="top">
+		
 		<openbicing.app.InfoLayer android:id="@+id/info_layer"
-			android:layout_width="fill_parent" android:layout_height="wrap_content"
+			android:layout_width="fill_parent" android:layout_height="50px"
 			android:paddingTop="5px" android:paddingLeft="5px"
 			android:background="@drawable/fancy_gradient" android:paddingBottom="5px"
 			android:paddingRight="5px">
 			<LinearLayout android:id="@+id/LinearLayout01"
 				android:layout_width="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android"
 				android:orientation="horizontal" android:layout_height="fill_parent">
-				
+				<TextView android:text="150m" android:id="@+id/distance"
+								android:layout_width="wrap_content" android:layout_height="fill_parent"
+								android:layout_marginRight="10px"
+								android:textColor="#000" android:textAppearance="?android:attr/textAppearanceSmall"
+								android:gravity="center"
+								 />
 				<LinearLayout android:id="@+id/LinearLayout02"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"
-					android:orientation="vertical" android:layout_weight="1">
+					android:orientation="vertical" android:layout_weight="2">
 
 					<TextView android:text="356 - Balcells" android:id="@+id/station_id"
 						android:layout_height="wrap_content" android:layout_width="fill_parent"
@@ -37,21 +44,13 @@
 								android:textColor="#000" android:textAppearance="?android:attr/textAppearanceMedium"
 								android:layout_height="wrap_content" />
 						</LinearLayout>
-						<LinearLayout android:id="@+id/LinearLayout05"
-							android:layout_width="fill_parent" android:layout_height="wrap_content"
-							android:orientation="horizontal" android:gravity="center">
-							<TextView android:text="150m" android:id="@+id/distance"
-								android:layout_width="wrap_content" android:layout_height="wrap_content"
-								android:layout_marginRight="10px"
-								android:textColor="#000"
-								 />
-							<TextView android:text="1 min" android:id="@+id/walking_time"
-								android:layout_width="wrap_content" android:layout_height="wrap_content" 
-								android:textColor="#000"
-								/>
-						</LinearLayout>
 					</LinearLayout>
 				</LinearLayout>
+				<TextView android:text="1 min" android:id="@+id/walking_time"
+								android:layout_width="wrap_content" android:layout_height="fill_parent" 
+								android:textColor="#000" android:textAppearance="?android:attr/textAppearanceSmall"
+								android:gravity="center"
+								/>
 			</LinearLayout>
 		</openbicing.app.InfoLayer>
 		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

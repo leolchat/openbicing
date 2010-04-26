@@ -3,6 +3,7 @@ package openbicing.app;
 import java.util.List;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,6 +25,11 @@ public class MainActivity extends MapActivity {
 	public static final int MENU_ITEM_SYNC = Menu.FIRST;
 	public static final int MENU_ITEM_LOCATION = Menu.FIRST + 1;
 	public static final int MENU_ITEM_WHATEVER = Menu.FIRST + 2;
+	public static final int MENU_ITEM_LIST = Menu.FIRST + 3;
+	public static final int KEY_LAT = 0;
+	public static final int KEY_LNG = 1;
+	public static final int LIST_STATIONS_ACTIVITY = 0;
+	
 	private StationOverlayList stations;
 	private StationsDBAdapter mDbHelper;
 	private InfoLayer infoLayer;
@@ -57,6 +63,13 @@ public class MainActivity extends MapActivity {
 					infoLayer.populateFields(stations.getCurrent());
 				}else if (msg.what == hOverlay.LOCATION_CHANGED){
 					mDbHelper.setCenter(hOverlay.getPoint());
+					try{
+						if(view_all){
+							view_all();
+						}else{
+							view_near();
+						}
+					}catch(Exception e){};
 				}
 			}
 		};
@@ -229,14 +242,19 @@ public class MainActivity extends MapActivity {
 				android.R.drawable.ic_menu_mylocation);
 		menu.add(0, MENU_ITEM_WHATEVER, 0, R.string.menu_view_all).setIcon(
 				android.R.drawable.checkbox_off_background);
-
+		menu.add(0, MENU_ITEM_LIST, 0, R.string.view_list).setIcon(
+				android.R.drawable.btn_star);
 		return true;
 	}
 
 	public void updateHome() {
-		stations.updateHome();
-		mapView.getController().setCenter(stations.getHome().getPoint());
-		mapView.getController().setZoom(16);
+		try{
+			stations.updateHome();
+			mapView.getController().setCenter(stations.getHome().getPoint());
+			mapView.getController().setZoom(16);
+		}catch (Exception e){
+			Log.i("openBicing","center is null..");
+		}
 	}
 
 	public void view_all() {
@@ -279,6 +297,17 @@ public class MainActivity extends MapActivity {
 			}
 			view_all = !view_all;
 			return true;
+		case MENU_ITEM_LIST:
+			Intent i = new Intent(this, StationsListActivity.class);
+			
+			GeoPoint center = stations.getHome().getPoint();
+			
+			i.putExtra(StationsDBAdapter.CENTER_LAT_KEY, center.getLatitudeE6());
+			i.putExtra(StationsDBAdapter.CENTER_LNG_KEY, center.getLongitudeE6());
+			i.putExtra(StationsDBAdapter.RADIUS_KEY, stations.getHome().getRadius());
+			i.putExtra(StationsDBAdapter.VIEW_ALL_KEY, view_all);
+            startActivityForResult(i, LIST_STATIONS_ACTIVITY);
+			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -300,5 +329,28 @@ public class MainActivity extends MapActivity {
 	protected void onPause() {
 		super.onPause();
 		Log.i("openBicing", "PAUSE!");
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == LIST_STATIONS_ACTIVITY){
+			Log.i("openBicing","Coming back from list");
+			if (resultCode == StationsListActivity.RESULT_OK){
+				Log.i("openBicing","Everything looks ok");
+				int position = data.getIntExtra(StationsListActivity.KEY_POSITION, -1);
+				Log.i("openBicing","And position was "+Integer.toString(position));
+				if (position!= -1){
+					StationOverlay selected = stations.findById(position);
+					if (selected!=null){
+						stations.setCurrent(selected.getPosition());
+						infoLayer.populateFields(selected);
+						mapView.getController().setCenter(selected.getCenter());
+						mapView.getController().setZoom(16);
+					}
+				}
+			}
+		}
 	}
 }

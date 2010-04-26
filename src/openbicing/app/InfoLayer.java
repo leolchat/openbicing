@@ -23,7 +23,7 @@ public class InfoLayer extends LinearLayout {
     private static final int SWIPE_MAX_OFF_PATH = 100;
     private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     
-    private static final double ERROR_COEFICIENT = 0.35;
+    public static final double ERROR_COEFICIENT = 0.35;
     private GestureDetector gestureDetector;
     View.OnTouchListener gestureListener;
 
@@ -97,31 +97,10 @@ public class InfoLayer extends LinearLayout {
 	
 	public void populateFields(){
 		if (this.station!=null){
-			this.station_id.setText(this.station.getId());
-			this.ocupation.setText(this.station.getBikes()+" bikes / "+station.getFree()+" free");
-			int meters, km;
-			double rawMeters;
-			rawMeters = this.station.getMetersDistance()+this.station.getMetersDistance()*ERROR_COEFICIENT;
-			km = (int) rawMeters/1000;
-			meters = (int) rawMeters - (1000*km);
-			Log.i("openBicing",Integer.toString(km)+" "+Integer.toString(meters));
-			String distanceText = "";
-			if (km>0){
-				distanceText = Integer.toString(km)+" km ";
-			}
-			distanceText = distanceText + Integer.toString(meters)+" m";
-			this.distance.setText(distanceText);
-			double rawMinutes = (rawMeters/5000)*60;
-			
-			int hours, minutes;
-			hours = (int) rawMinutes / 60;
-			minutes = (int) rawMinutes - (60*hours);
-			String walkingText = "";
-			if (hours>0){
-				walkingText = Integer.toString(hours)+" h ";
-			}
-			walkingText = walkingText + Integer.toString(minutes)+" min";
-			this.walking_time.setText(walkingText);
+			this.station_id.setText(this.station.getName());
+			this.ocupation.setText(this.station.getOcupation());
+			this.walking_time.setText(this.station.getWalking());
+			this.distance.setText(this.station.getDistance());
 			BitmapDrawable bg;
 			switch(station.getState()){
 				case StationOverlay.GREEN_STATE:

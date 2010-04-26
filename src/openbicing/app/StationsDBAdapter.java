@@ -29,6 +29,7 @@ public class StationsDBAdapter implements Runnable {
 	public static final String CENTER_LAT_KEY = "sCenterLat";
 	public static final String CENTER_LNG_KEY = "sCenterLng";
 	public static final String RADIUS_KEY = "sRadius";
+	public static final String VIEW_ALL_KEY = "sViewAll";
 	public static final String BICING_PROVIDER = "http://openbicing.appspot.com/stations.json";
 	public static final String PREF_NAME = "openbicing";
 
@@ -72,6 +73,13 @@ public class StationsDBAdapter implements Runnable {
 
 		this.toDo = new LinkedList();
 	}
+	
+	public StationsDBAdapter(Context ctx, Handler handler){
+		this.mRESTHelper = new RESTHelper(this.mCtx, false, null, null);
+		this.handlerOut = handler;
+		this.toDo = new LinkedList();
+		this.mCtx = ctx;
+	}
 
 	public String fetchStations(String provider) throws Exception {
 		return mRESTHelper.restGET(provider);
@@ -94,14 +102,16 @@ public class StationsDBAdapter implements Runnable {
 	}
 
 	public void buildMemory(JSONArray stations) throws Exception {
+		Log.i("openBicing","Building Memory without distances and order");
 		this.stationsMemoryMap = new LinkedList <StationOverlay>();
 		JSONObject station = null;
-		int lat, lng, bikes, free;
-		String timestamp, id;
+		int lat, lng, bikes, free, id;
+		String timestamp, name;
 		GeoPoint point;
 		for (int i = 0; i < stations.length(); i++) {
 			station = stations.getJSONObject(i);
-			id = station.getString("name");
+			id = station.getInt("id");
+			name = station.getString("name");
 			lat = Integer.parseInt(station.getString("y"));
 			lng = Integer.parseInt(station.getString("x"));
 			bikes = station.getInt("bikes");
@@ -109,21 +119,39 @@ public class StationsDBAdapter implements Runnable {
 			timestamp = station.getString("timestamp");
 			
 			point = new GeoPoint(lat, lng);
-			StationOverlay memoryStation = new StationOverlay(point, mCtx,
-					bikes, free, timestamp, id);
+			StationOverlay memoryStation = new StationOverlay(point, mCtx, id, bikes, free, timestamp, name);
 			stationsMemoryMap.add(memoryStation);
 		}
+	}
+	
+	public List <StationOverlay> getMemory() throws Exception{
+		return stationsMemoryMap;
+	}
+	
+	public List <StationOverlay> getMemory(int radius) throws Exception{
+		List <StationOverlay> res = new LinkedList <StationOverlay>();
+		StationOverlay tmp;
+		Iterator<StationOverlay> i = stationsMemoryMap.iterator();
+		while (i.hasNext()) {
+			tmp = i.next();
+			if ((tmp.getMetersDistance()+tmp.getMetersDistance()*0.35)<=radius){
+				res.add(tmp);
+				Log.i("openBicing",Integer.toString(tmp.getPosition()));
+			}
+		}
+		return res;
 	}
 	
 	public void buildMemory(JSONArray stations, GeoPoint center) throws Exception{
 		this.stationsMemoryMap = new LinkedList <StationOverlay>();
 		JSONObject station = null;
-		int lat, lng, bikes, free;
-		String timestamp, id;
+		int lat, lng, bikes, free, id;
+		String timestamp, name;
 		GeoPoint point;
 		for (int i = 0; i < stations.length(); i++) {
 			station = stations.getJSONObject(i);
-			id = station.getString("name");
+			id = station.getInt("id");
+			name = station.getString("name");
 			lat = Integer.parseInt(station.getString("y"));
 			lng = Integer.parseInt(station.getString("x"));
 			bikes = station.getInt("bikes");
@@ -131,9 +159,10 @@ public class StationsDBAdapter implements Runnable {
 			timestamp = station.getString("timestamp");
 			
 			point = new GeoPoint(lat, lng);
-			StationOverlay memoryStation = new StationOverlay(point, mCtx,
-					bikes, free, timestamp, id);
+			StationOverlay memoryStation = new StationOverlay(point, mCtx, id, 
+					bikes, free, timestamp, name);
 			memoryStation.setMetersDistance(CircleHelper.gp2m(center, point));
+			memoryStation.populateStrings();
 			stationsMemoryMap.add(memoryStation);
 		}
 		

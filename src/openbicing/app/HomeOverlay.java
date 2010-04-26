@@ -2,12 +2,16 @@ package openbicing.app;
 
 import java.util.List;
 
+import openbicing.utils.CircleHelper;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Paint.Cap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -41,10 +45,15 @@ public class HomeOverlay extends Overlay {
 	private float smallCircleRadius = 10;
 
 	private float angle = 0;
-
+	
+	private BitmapDrawable arrow;
+	
+	private float scaleWidth, scaleHeight;
+	
 	private Handler handler;
 
 	public HomeOverlay(Context context, Handler handler) {
+		Log.i("openBicing","AWESOME");
 		this.context = context;
 		this.handler = handler;
 		LocationManager locationManager = (LocationManager) this.context
@@ -83,6 +92,11 @@ public class HomeOverlay extends Overlay {
 					});
 		}
 		setLastKnownLocation();
+		arrow = new BitmapDrawable(BitmapFactory.decodeResource(context.getResources(), R.drawable.tag));
+		int width = arrow.getIntrinsicWidth();
+		int height = arrow.getIntrinsicHeight();
+		scaleWidth = ((float) 40) / width;
+		scaleHeight = ((float) 40) / height;
 	}
 
 	public void setLastKnownLocation() {
@@ -96,10 +110,17 @@ public class HomeOverlay extends Overlay {
 	}
 
 	public void update(Location location) {
-		Double lat = location.getLatitude() * 1E6;
-		Double lng = location.getLongitude() * 1E6;
-		this.point = new GeoPoint(lat.intValue(), lng.intValue());
-		handler.sendEmptyMessage(LOCATION_CHANGED);
+		if (location!=null){
+			Double lat = location.getLatitude() * 1E6;
+			Double lng = location.getLongitude() * 1E6;
+			this.point = new GeoPoint(lat.intValue(), lng.intValue());
+			handler.sendEmptyMessage(LOCATION_CHANGED);
+		}else{
+			Double lat = 41.3937256 * 1E6;
+			Double lng = 2.1647042 * 1E6;
+			this.point = new GeoPoint(lat.intValue(), lng.intValue());
+			handler.sendEmptyMessage(LOCATION_CHANGED);
+		}
 	}
 
 	public void setRadius(int meters) {
@@ -117,7 +138,8 @@ public class HomeOverlay extends Overlay {
 	@Override
 	public boolean draw(Canvas canvas, MapView mapView, boolean shadow,
 			long when) {
-		// TODO Auto-generated method stub
+		
+		try{
 		Projection astral = mapView.getProjection();
 		Point screenPixels = astral.toPixels(this.point, null);
 		this.radiusInPixels = astral
@@ -169,13 +191,15 @@ public class HomeOverlay extends Overlay {
 		canvas.drawPath(tPath, txtPaint);
 
 		drawArrow(canvas, screenPixels, this.radiusInPixels, angle);
-		
+		}catch(Exception e){
+			
+		}
 		return super.draw(canvas, mapView, shadow, when);
 	}
 
 	public void drawArrow(Canvas canvas, Point sPC, float length, double angle) {
 		Paint paint = new Paint();
-		paint.setARGB(100, 147, 186, 228);
+		paint.setARGB(255, 147, 186, 228);
 		paint.setStrokeWidth(2);
 		paint.setAntiAlias(true);
 		paint.setStrokeCap(Cap.ROUND);
@@ -184,13 +208,15 @@ public class HomeOverlay extends Overlay {
 		float y = (float) (sPC.y + length * Math.sin(angle));
 		canvas.drawLine(sPC.x, sPC.y, x, y, paint);
 
-		canvas.drawCircle(x, y, 5, paint);
+		//canvas.drawCircle(x, y, 10, paint);
 
 		canvas.drawCircle(sPC.x, sPC.y, 5, paint);
 
 		smallCircleX = x;
 		smallCircleY = y;
-		// smallCircleRadius = length/10;
+		
+		canvas.drawCircle(x,y, 8, paint);
+		
 	}
 
 	@Override
@@ -215,8 +241,8 @@ public class HomeOverlay extends Overlay {
 
 		int action = e.getAction();
 
-		boolean onCircle = isOnCircle(x, y, this.smallCircleX,
-				this.smallCircleY, this.smallCircleRadius + 10);
+		boolean onCircle = CircleHelper.isOnCircle(x, y, this.smallCircleX,
+				this.smallCircleY, this.smallCircleRadius + 20);
 
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:

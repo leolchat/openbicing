@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Message;
 import android.view.MotionEvent;
+import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapView;
@@ -19,8 +20,13 @@ public class StationOverlay extends Overlay {
 	private int free;
 	private String timestamp;
 	private int status;
-	private String id;
+	private String name;
 	private Context context;
+	private int id;
+	
+	private String distanceText = "";
+	private String walkingText = "";
+	private String ocupationText = "";
 
 	private Handler handler;
 
@@ -55,12 +61,13 @@ public class StationOverlay extends Overlay {
 
 	private int position = -1;
 
-	public StationOverlay(GeoPoint point, Context context, int bikes, int free,
-			String timestamp, String id) {
+	public StationOverlay(GeoPoint point, Context context, int id, int bikes, int free,
+			String timestamp, String name) {
+		this.id = id;
 		this.point = point;
 		this.bikes = bikes;
 		this.free = free;
-		this.id = id;
+		this.name = name;
 		this.timestamp = timestamp;
 		this.context = context;
 
@@ -85,13 +92,21 @@ public class StationOverlay extends Overlay {
 	public void setPosition(int position) {
 		this.position = position;
 	}
+	
+	public int getPosition(){
+		return this.position;
+	}
 
 	public void setHandler(Handler handler) {
 		this.handler = handler;
 	}
-
-	public String getId() {
+	
+	public int getId(){
 		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
 	}
 	
 	public double getMetersDistance(){
@@ -209,6 +224,40 @@ public class StationOverlay extends Overlay {
 
 	public boolean getSelected() {
 		return this.selected;
+	}
+	
+	public void populateStrings(){
+		ocupationText = Integer.toString(this.bikes)+" bikes / "+Integer.toString(this.free)+" free";
+		
+		int meters, km;
+		double rawMeters;
+		rawMeters = this.metersDistance+this.metersDistance*InfoLayer.ERROR_COEFICIENT;
+		km = (int) rawMeters/1000;
+		meters = (int) rawMeters - (1000*km);
+		if (km>0){
+			distanceText = Integer.toString(km)+" km ";
+		}
+		distanceText = distanceText + Integer.toString(meters)+" m";
+		
+		double rawMinutes = (rawMeters/5000)*60;
+		
+		int hours, minutes;
+		hours = (int) rawMinutes / 60;
+		minutes = (int) rawMinutes - (60*hours);
+		if (hours>0){
+			walkingText = Integer.toString(hours)+" h ";
+		}
+		walkingText = walkingText + Integer.toString(minutes)+" min";
+	}
+	
+	public String getOcupation(){
+		return this.ocupationText;
+	}
+	public String getWalking(){
+		return this.walkingText;
+	}
+	public String getDistance(){
+		return this.distanceText;
 	}
 
 	@Override
