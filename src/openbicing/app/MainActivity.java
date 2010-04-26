@@ -237,13 +237,13 @@ public class MainActivity extends MapActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 		menu.add(0, MENU_ITEM_SYNC, 0, R.string.menu_sync).setIcon(
-				R.drawable.refresh);
+				R.drawable.ic_menu_refresh);
 		menu.add(0, MENU_ITEM_LOCATION, 0, R.string.menu_location).setIcon(
 				android.R.drawable.ic_menu_mylocation);
 		menu.add(0, MENU_ITEM_WHATEVER, 0, R.string.menu_view_all).setIcon(
 				android.R.drawable.checkbox_off_background);
 		menu.add(0, MENU_ITEM_LIST, 0, R.string.view_list).setIcon(
-				android.R.drawable.btn_star);
+				android.R.drawable.ic_menu_agenda);
 		return true;
 	}
 

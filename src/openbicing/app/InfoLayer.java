@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -38,7 +39,7 @@ public class InfoLayer extends LinearLayout {
 	
 	private Context ctx;
 	
-	private BitmapDrawable green, red, yellow;
+	private int red, green, yellow;
 	
 	public static final int NEXT_STATION = 200;
 	public static final int PREV_STATION = 201;
@@ -80,10 +81,9 @@ public class InfoLayer extends LinearLayout {
 		this.walking_time = walking_time;
 		this.handler = hdl;
 		
-		green = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.green_gradient_image));
-		yellow = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.yellow_gradient_image));
-		red = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.red_gradient_image));
-		
+		green = R.drawable.alpha_green_gradient;
+		yellow = R.drawable.alpha_yellow_gradient;
+		red = R.drawable.alpha_red_gradient;
 	}
 	
 	
@@ -101,7 +101,7 @@ public class InfoLayer extends LinearLayout {
 			this.ocupation.setText(this.station.getOcupation());
 			this.walking_time.setText(this.station.getWalking());
 			this.distance.setText(this.station.getDistance());
-			BitmapDrawable bg;
+			int bg;
 			switch(station.getState()){
 				case StationOverlay.GREEN_STATE:
 					bg = this.green;
@@ -113,13 +113,9 @@ public class InfoLayer extends LinearLayout {
 					bg = this.yellow;
 					break;
 				default:
-					bg = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.fancy_gradient));
+					bg = R.drawable.fancy_gradient;
 			}
-			
-			bg.setBounds(this.getBackground().getBounds());
-			bg.setAlpha(200);
-			bg.setTileModeX(TileMode.REPEAT);
-			this.setBackgroundDrawable(bg);
+			this.setBackgroundResource(bg);
 		}
 	}
 	

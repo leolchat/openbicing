@@ -2,15 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
       android:layout_width="fill_parent"
     	android:layout_height="fill_parent"
-    	android:background="#FFFFFFFF"
     	>
     
     <ListView android:id="@+id/android:list"
           android:layout_width="fill_parent"
         	android:layout_height="fill_parent"
-        	android:scrollingCache="false"
-        	android:dividerHeight="0px"
-        	android:scrollbarAlwaysDrawVerticalTrack="true"
+        	android:scrollingCache="true"
         	/>
   	<TextView android:id="@+id/android:empty"
           android:layout_width="wrap_content"

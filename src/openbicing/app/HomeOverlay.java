@@ -46,10 +46,6 @@ public class HomeOverlay extends Overlay {
 
 	private float angle = 0;
 	
-	private BitmapDrawable arrow;
-	
-	private float scaleWidth, scaleHeight;
-	
 	private Handler handler;
 
 	public HomeOverlay(Context context, Handler handler) {
@@ -92,11 +88,6 @@ public class HomeOverlay extends Overlay {
 					});
 		}
 		setLastKnownLocation();
-		arrow = new BitmapDrawable(BitmapFactory.decodeResource(context.getResources(), R.drawable.tag));
-		int width = arrow.getIntrinsicWidth();
-		int height = arrow.getIntrinsicHeight();
-		scaleWidth = ((float) 40) / width;
-		scaleHeight = ((float) 40) / height;
 	}
 
 	public void setLastKnownLocation() {

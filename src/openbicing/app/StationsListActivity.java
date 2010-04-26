@@ -4,9 +4,8 @@ import java.util.List;
 
 import android.app.ListActivity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,7 +21,7 @@ import com.google.android.maps.GeoPoint;
 public class StationsListActivity extends ListActivity {
 	private StationsDBAdapter mDbHelper;
 	private List <StationOverlay> stations;
-	private BitmapDrawable green, red, yellow;
+	private int green, red, yellow;
 	private int radius;
 	private boolean view_all;
 	
@@ -70,9 +68,9 @@ public class StationsListActivity extends ListActivity {
         registerForContextMenu(getListView());
         fillData();
         
-        green = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.green_gradient_image_small));
-		yellow = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.yellow_gradient_image_small));
-		red = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.red_gradient_image_small));
+        green = R.drawable.green_gradient;
+        yellow = R.drawable.yellow_gradient;
+        red = R.drawable.red_gradient;
     }
     
     private void fillData(){
@@ -104,7 +102,7 @@ public class StationsListActivity extends ListActivity {
             		TextView stWk = (TextView) row.findViewById(R.id.station_list_item_walking_time);
             		stWk.setText(tmp.getWalking());
             		
-        			BitmapDrawable bg;
+        			int bg;
         			switch(tmp.getState()){
         				case StationOverlay.GREEN_STATE:
         					bg = green;
@@ -116,12 +114,9 @@ public class StationsListActivity extends ListActivity {
         					bg = yellow;
         					break;
         				default:
-        					bg = new BitmapDrawable(BitmapFactory.decodeResource(getResources(), R.drawable.fancy_gradient));
+        					bg = R.drawable.fancy_gradient;
         			}
-        			bg.setAlpha(200);
-        			LinearLayout mainLayout = (LinearLayout) row.findViewById(R.id.station_list_item_main_layout);
-        			bg.setTileModeX(TileMode.REPEAT);
-        			row.setBackgroundDrawable(bg);
+        			row.setBackgroundResource(bg);
         			row.setId(tmp.getId());
             		return row;
             	}

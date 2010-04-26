@@ -4,7 +4,7 @@
 				android:orientation="horizontal" 
 				android:layout_width="fill_parent" android:layout_height="50px"
 				android:paddingTop="5px" android:paddingLeft="5px"
-				android:background="@drawable/fancy_gradient" android:paddingBottom="5px"
+				android:paddingBottom="5px"
 				android:paddingRight="5px"
 				>
 				<TextView android:text="150m" android:id="@+id/station_list_item_distance"

@@ -4,7 +4,5 @@
     <string name="menu_sync">Sync</string>
     <string name="menu_location">My Location</string>
     <string name="menu_view_all">View All Stations</string>
-    <string name="prev_station">prev</string>
-    <string name="next_station">next</string>
 <string name="view_list">List</string>
 </resources>

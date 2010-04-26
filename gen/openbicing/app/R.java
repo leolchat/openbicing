@@ -14,21 +14,16 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int fancy_gradient=0x7f020000;
-        public static final int green_gradient=0x7f020001;
-        public static final int green_gradient_image=0x7f020002;
-        public static final int green_gradient_image_small=0x7f020003;
-        public static final int icon=0x7f020004;
-        public static final int icon_shit=0x7f020005;
-        public static final int icon_transparent=0x7f020006;
-        public static final int icon_white=0x7f020007;
-        public static final int red_gradient_image=0x7f020008;
-        public static final int red_gradient_image_small=0x7f020009;
-        public static final int refresh=0x7f02000a;
-        public static final int shadow=0x7f02000b;
-        public static final int tag=0x7f02000c;
-        public static final int yellow_gradient_image=0x7f02000d;
-        public static final int yellow_gradient_image_small=0x7f02000e;
+        public static final int alpha_green_gradient=0x7f020000;
+        public static final int alpha_red_gradient=0x7f020001;
+        public static final int alpha_yellow_gradient=0x7f020002;
+        public static final int fancy_gradient=0x7f020003;
+        public static final int green_gradient=0x7f020004;
+        public static final int ic_menu_refresh=0x7f020005;
+        public static final int icon_shit=0x7f020006;
+        public static final int red_gradient=0x7f020007;
+        public static final int shadow=0x7f020008;
+        public static final int yellow_gradient=0x7f020009;
     }
     public static final class id {
         public static final int LinearLayout01=0x7f060003;
@@ -61,8 +56,6 @@ public final class R {
         public static final int menu_location=0x7f050002;
         public static final int menu_sync=0x7f050001;
         public static final int menu_view_all=0x7f050003;
-        public static final int next_station=0x7f050005;
-        public static final int prev_station=0x7f050004;
-        public static final int view_list=0x7f050006;
+        public static final int view_list=0x7f050004;
     }
 }
