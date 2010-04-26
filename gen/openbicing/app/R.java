@@ -19,15 +19,16 @@ public final class R {
         public static final int green_gradient_image=0x7f020002;
         public static final int green_gradient_image_small=0x7f020003;
         public static final int icon=0x7f020004;
-        public static final int icon_transparent=0x7f020005;
-        public static final int icon_white=0x7f020006;
-        public static final int red_gradient_image=0x7f020007;
-        public static final int red_gradient_image_small=0x7f020008;
-        public static final int refresh=0x7f020009;
-        public static final int shadow=0x7f02000a;
-        public static final int tag=0x7f02000b;
-        public static final int yellow_gradient_image=0x7f02000c;
-        public static final int yellow_gradient_image_small=0x7f02000d;
+        public static final int icon_shit=0x7f020005;
+        public static final int icon_transparent=0x7f020006;
+        public static final int icon_white=0x7f020007;
+        public static final int red_gradient_image=0x7f020008;
+        public static final int red_gradient_image_small=0x7f020009;
+        public static final int refresh=0x7f02000a;
+        public static final int shadow=0x7f02000b;
+        public static final int tag=0x7f02000c;
+        public static final int yellow_gradient_image=0x7f02000d;
+        public static final int yellow_gradient_image_small=0x7f02000e;
     }
     public static final class id {
         public static final int LinearLayout01=0x7f060003;
