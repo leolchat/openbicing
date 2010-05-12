@@ -31,6 +31,8 @@ public class StationsDBAdapter implements Runnable {
 	public static final String RADIUS_KEY = "sRadius";
 	public static final String VIEW_ALL_KEY = "sViewAll";
 	public static final String BICING_PROVIDER = "http://openbicing.appspot.com/stations.json";
+	public static final String VELIB_PROVIDER = "http://openvelib.appspot.com/stations.json";
+	public static final String DUBLIN_PROVIDER = "http://opendublinbikes.appspot.com/stations.json";
 	public static final String PREF_NAME = "openbicing";
 
 	public static final int FETCH = 0;
@@ -136,7 +138,6 @@ public class StationsDBAdapter implements Runnable {
 			tmp = i.next();
 			if ((tmp.getMetersDistance()+tmp.getMetersDistance()*0.35)<=radius){
 				res.add(tmp);
-				Log.i("openBicing",Integer.toString(tmp.getPosition()));
 			}
 		}
 		return res;
@@ -152,12 +153,11 @@ public class StationsDBAdapter implements Runnable {
 			station = stations.getJSONObject(i);
 			id = station.getInt("id");
 			name = station.getString("name");
-			lat = Integer.parseInt(station.getString("y"));
-			lng = Integer.parseInt(station.getString("x"));
+			lat = Integer.parseInt(station.getString("lat"));
+			lng = Integer.parseInt(station.getString("lng"));
 			bikes = station.getInt("bikes");
 			free = station.getInt("free");
 			timestamp = station.getString("timestamp");
-			
 			point = new GeoPoint(lat, lng);
 			StationOverlay memoryStation = new StationOverlay(point, mCtx, id, 
 					bikes, free, timestamp, name);
@@ -234,12 +234,18 @@ public class StationsDBAdapter implements Runnable {
 		stationsDisplayList.clear();
 		Iterator<StationOverlay> i = stationsMemoryMap.iterator();
 		StationOverlay tmp;
+		int jumps = 0;
 		while (i.hasNext()) {
 			tmp = i.next();
 			if ((tmp.getMetersDistance()+tmp.getMetersDistance()*0.35)<=radius){
 				stationsDisplayList.addStationOverlay(tmp);
+			}else{
+				jumps++;
+				if (jumps>3){
+					break;
+				}
 			}
-		}		
+		}
 		stationsDisplayList.updatePositions();
 		mapView.postInvalidate();
 	}

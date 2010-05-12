@@ -4,15 +4,27 @@ import java.util.List;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.LinearLayout.LayoutParams;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -36,6 +48,10 @@ public class MainActivity extends MapActivity {
 	private boolean view_all = false;
 	private HomeOverlay hOverlay;
 	private ProgressDialog progressDialog;
+	private FrameLayout fl;
+	private SlidingDrawer sd;
+	
+	private int green, red, yellow;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -43,6 +59,8 @@ public class MainActivity extends MapActivity {
 		setContentView(R.layout.main);
 
 		mapView = (MapView) findViewById(R.id.mapview);
+		fl = (FrameLayout) findViewById(R.id.content);
+		sd = (SlidingDrawer) findViewById(R.id.drawer);
 		mapView.setBuiltInZoomControls(true);
 
 		List<Overlay> mapOverlays = mapView.getOverlays();
@@ -64,6 +82,8 @@ public class MainActivity extends MapActivity {
 				}else if (msg.what == hOverlay.LOCATION_CHANGED){
 					mDbHelper.setCenter(hOverlay.getPoint());
 					try{
+						mDbHelper.loadStations();
+						
 						if(view_all){
 							view_all();
 						}else{
@@ -195,7 +215,6 @@ public class MainActivity extends MapActivity {
 				current.setSelected(true);
 				infoLayer.populateFields(current);
 		}
-		
 	}
 
 	private void fillData(boolean all) {
@@ -242,8 +261,6 @@ public class MainActivity extends MapActivity {
 				android.R.drawable.ic_menu_mylocation);
 		menu.add(0, MENU_ITEM_WHATEVER, 0, R.string.menu_view_all).setIcon(
 				android.R.drawable.checkbox_off_background);
-		menu.add(0, MENU_ITEM_LIST, 0, R.string.view_list).setIcon(
-				android.R.drawable.ic_menu_agenda);
 		return true;
 	}
 
@@ -260,18 +277,20 @@ public class MainActivity extends MapActivity {
 	public void view_all() {
 		try {
 			mDbHelper.populateStations();
+			populateList(true);
 		} catch (Exception e) {
-		}
-		;
+		
+		};
 	}
 
 	public void view_near() {
 		try {
 			mDbHelper.populateStations(stations.getHome().getPoint(), stations
 					.getHome().getRadius());
+			populateList(false);
 		} catch (Exception e) {
-		}
-		;
+			
+		};
 	}
 
 	@Override
@@ -296,17 +315,6 @@ public class MainActivity extends MapActivity {
 				view_near();
 			}
 			view_all = !view_all;
-			return true;
-		case MENU_ITEM_LIST:
-			Intent i = new Intent(this, StationsListActivity.class);
-			
-			GeoPoint center = stations.getHome().getPoint();
-			
-			i.putExtra(StationsDBAdapter.CENTER_LAT_KEY, center.getLatitudeE6());
-			i.putExtra(StationsDBAdapter.CENTER_LNG_KEY, center.getLongitudeE6());
-			i.putExtra(StationsDBAdapter.RADIUS_KEY, stations.getHome().getRadius());
-			i.putExtra(StationsDBAdapter.VIEW_ALL_KEY, view_all);
-            startActivityForResult(i, LIST_STATIONS_ACTIVITY);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -351,6 +359,107 @@ public class MainActivity extends MapActivity {
 					}
 				}
 			}
+		}
+	}
+	
+	public void populateList(boolean all){
+		
+		try {
+			ListView lv = new ListView(this);
+			List sts;
+			if (all){
+				sts = mDbHelper.getMemory();
+			}else{
+				sts = mDbHelper.getMemory(hOverlay.getRadius());	
+			}
+			
+			green = R.drawable.green_gradient;
+	        yellow = R.drawable.yellow_gradient;
+	        red = R.drawable.red_gradient;
+	        ArrayAdapter adapter = new ArrayAdapter(this,R.layout.stations_list_item, sts){
+				LayoutInflater mInflater = getLayoutInflater();
+	        	@Override
+	        	public View getView(int position, View convertView, ViewGroup parent){
+	        		View row;
+	        		if (convertView == null){
+	        			row = mInflater.inflate(R.layout.stations_list_item,null);
+	        		}else{
+	        			row = convertView;
+	        		}
+	        			StationOverlay tmp = (StationOverlay) getItem(position);
+		        		TextView stId = (TextView) row.findViewById(R.id.station_list_item_id);
+		        		stId.setText(tmp.getName());
+		        		TextView stOc = (TextView) row.findViewById(R.id.station_list_item_ocupation);
+		        		stOc.setText(tmp.getOcupation());
+		        		TextView stDst = (TextView) row.findViewById(R.id.station_list_item_distance);
+		        		stDst.setText(tmp.getDistance());
+		        		TextView stWk = (TextView) row.findViewById(R.id.station_list_item_walking_time);
+		        		stWk.setText(tmp.getWalking());
+		        		
+		    			int bg;
+		    			switch(tmp.getState()){
+		    				case StationOverlay.GREEN_STATE:
+		    					bg = green;
+		    					break;
+		    				case StationOverlay.RED_STATE:
+		    					bg = red;
+		    					break;
+		    				case StationOverlay.YELLOW_STATE:
+		    					bg = yellow;
+		    					break;
+		    				default:
+		    					bg = R.drawable.fancy_gradient;
+		    			}
+		    			LinearLayout sq = (LinearLayout) row.findViewById(R.id.station_list_item_square);
+		    			sq.setBackgroundResource(bg);
+		    			row.setId(tmp.getId());
+		        		return row;
+	        	}
+	        };
+			lv.setAdapter(adapter);
+			
+			lv.setOnItemClickListener(new OnItemClickListener(){
+
+				@Override
+				public void onItemClick(AdapterView<?> arg0, View v,
+						int position, long id) {
+					
+					int pos = v.getId();
+					if (pos!=-1){
+						StationOverlay selected = stations.findById(pos);
+						if (selected!=null){
+							stations.setCurrent(selected.getPosition());
+							infoLayer.populateFields(selected);
+							mapView.getController().animateTo(selected.getCenter());
+							mapView.getController().setZoom(16);
+							int height = arg0.getHeight();
+							DisplayMetrics dm = new DisplayMetrics();
+							getWindowManager().getDefaultDisplay().getMetrics(dm);
+							int w_height = dm.heightPixels;
+							if (height > w_height/2){
+								sd.animateClose();
+							}
+						}
+					}
+				}});
+			lv.setBackgroundColor(Color.BLACK);
+			lv.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+			fl.setBackgroundColor(Color.BLACK);
+			fl.removeAllViews();
+			fl.addView(lv);
+			
+			DisplayMetrics dm = new DisplayMetrics();
+			getWindowManager().getDefaultDisplay().getMetrics(dm);
+			int height = dm.heightPixels;
+			int calc = (lv.getCount()*50)+40;
+			if (calc == 0 || calc > height-90)
+				calc = height - 90;
+			sd.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, calc));
+			Log.i("openBicing",Integer.toString(fl.getHeight()));
+		} catch (Exception e) {
+			Log.i("openBicing","SHIT THIS SUCKS MEN ARGH FUCK IT!");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

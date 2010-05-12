@@ -129,6 +129,21 @@ public class StationOverlayList {
 			return null;
 	}
 
+	public StationOverlay findById(int id){
+		Iterator i = mapOverlays.iterator();
+		StationOverlay tmp;
+		Object aws;
+		while(i.hasNext()){
+			aws = i.next();
+			if(aws instanceof StationOverlay){
+				tmp = (StationOverlay) aws;
+				if (tmp.getId() == id)
+					return tmp;
+			}
+		}
+		return null;
+	}
+	
 	public StationOverlay selectNext() {
 		if (last != null)
 			last.setSelected(false);
@@ -153,21 +168,6 @@ public class StationOverlayList {
 
 	}
 	
-	public StationOverlay findById(int id){
-		Iterator i = mapOverlays.iterator();
-		StationOverlay tmp;
-		Object aws;
-		while(i.hasNext()){
-			aws = i.next();
-			if(aws instanceof StationOverlay){
-				tmp = (StationOverlay) aws;
-				if (tmp.getId() == id)
-					return tmp;
-			}
-		}
-		return null;
-	}
-
 	public StationOverlay selectPrevious() {
 		if (last != null)
 			last.setSelected(false);

@@ -152,8 +152,6 @@ public class HomeOverlay extends Overlay {
 		canvas.drawCircle(screenPixels.x, screenPixels.y, this.radiusInPixels,
 				paint);
 	     
-        
-        
 		
 		Paint txtPaint = new Paint();
 		txtPaint.setARGB(255, 255, 255, 255);
@@ -217,12 +215,6 @@ public class HomeOverlay extends Overlay {
 		return super.onTap(p, mapView);
 	}
 
-	private boolean isOnCircle(float x, float y, float centerX, float centerY,
-			float radius) {
-		double square_dist = Math.pow(centerX - x, 2)
-				+ Math.pow(centerY - y, 2);
-		return square_dist <= Math.pow(radius, 2);
-	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent e, MapView mapView) {

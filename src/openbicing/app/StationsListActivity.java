@@ -4,15 +4,13 @@ import java.util.List;
 
 import android.app.ListActivity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -116,7 +114,8 @@ public class StationsListActivity extends ListActivity {
         				default:
         					bg = R.drawable.fancy_gradient;
         			}
-        			row.setBackgroundResource(bg);
+        			LinearLayout sq = (LinearLayout) row.findViewById(R.id.station_list_item_square);
+        			sq.setBackgroundResource(bg);
         			row.setId(tmp.getId());
             		return row;
             	}
