@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">openBicing</string>
+    <string name="menu_sync">Sincronizar</string>
+    <string name="menu_location">Mi ubicación</string>
+    <string name="menu_view_all">Ver todas</string>
+    <string name="menu_settings">Preferencias</string>
+    <string name="menu_help">Ayuda</string>
+    <string name="no_bikes_around">No hay ninguna estación cerca. Prueba cambiando la distancia de la zona mostrada utilizando el control azul, o activando \"Ver todas\" en el menú de opciones</string>
+    <string name="bikes">bicis</string>
+    <string name="free">espacios</string>
+    <string name="network_error">Error de conexión, última actualización: </string>
+    <string name="loading">Descargando bicis :)</string>
+    <string name="preferences_location">Localización</string>
+    <string name="preferences_location_title">Método de localización</string>
+    <string name="preferences_location_summary">Activa o desactiva la localitzación por Red o GPS</string>
+    
+    <string name="help_0_title">Home Layer</string>
+    <string name="help_0_text">That blue circle is represents an area of meters surrounding your position.\n\nTo resize the area just drag the blue knob until you feel alright.</string>
+</resources>

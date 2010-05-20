@@ -14,4 +14,7 @@
     <string name="preferences_location">My Location</string>
     <string name="preferences_location_title">Select a Location Provider</string>
     <string name="preferences_location_summary">Click to change your location providers (Network and GPS)</string>
+    
+    <string name="help_0_title">Home Layer</string>
+    <string name="help_0_text">That blue circle is represents an area of meters surrounding your position.\n\nTo resize the area just drag the blue knob until you feel alright.</string>
 </resources>

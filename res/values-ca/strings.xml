@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">openBicing</string>
+    <string name="menu_sync">Sincronitza</string>
+    <string name="menu_location">On sóc?</string>
+    <string name="menu_view_all">Veure tot</string>
+    <string name="menu_settings">Preferències</string>
+    <string name="menu_help">Ajuda</string>
+    <string name="no_bikes_around">No hi ha cap estació a la vora. Prova a canviar el tamany de la zona mostrada utilitzant el control blau o activa \"Veure tot\" al menú d\'opcions</string>
+    <string name="bikes">bicis</string>
+    <string name="free">espais</string>
+    <string name="network_error">Error de connexió, última actualització: </string>
+    <string name="loading">Descarregant bicicletes :D</string>
+    <string name="preferences_location">On sóc?</string>
+    <string name="preferences_location_title">Métode de localització</string>
+    <string name="preferences_location_summary">Activa o desactiva la localització per Xarxa o GPS</string>
+    
+    <string name="help_0_title">Home Layer</string>
+    <string name="help_0_text">That blue circle is represents an area of meters surrounding your position.\n\nTo resize the area just drag the blue knob until you feel alright.</string>
+</resources>

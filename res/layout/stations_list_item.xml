@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout android:id="@+id/station_list_item_everything"
 				xmlns:android="http://schemas.android.com/apk/res/android"
-				android:orientation="horizontal" 
-				android:layout_width="fill_parent" android:layout_height="50px"
+				android:orientation="horizontal"
+				android:layout_width="fill_parent" android:layout_height="wrap_content"
 				>
  <LinearLayout android:id="@+id/station_list_item_square"
 						xmlns:android="http://schemas.android.com/apk/res/android"
@@ -32,7 +32,7 @@
 					android:orientation="vertical" android:layout_weight="1">
 
 					<TextView android:text="356 - Balcells" android:id="@+id/station_list_item_id"
-						android:layout_height="wrap_content" android:layout_width="fill_parent"
+						android:layout_height="wrap_content" android:lines="1" android:layout_width="fill_parent"
 						
 						android:gravity="center" android:textAppearance="?android:attr/textAppearanceSmall" />
 
