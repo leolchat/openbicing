@@ -20,9 +20,8 @@ public final class R {
         public static final int ic_menu_refresh=0x7f020006;
         public static final int icon_cool=0x7f020007;
         public static final int red_gradient=0x7f020008;
-        public static final int screen=0x7f020009;
-        public static final int shadow=0x7f02000a;
-        public static final int yellow_gradient=0x7f02000b;
+        public static final int shadow=0x7f020009;
+        public static final int yellow_gradient=0x7f02000a;
     }
     public static final class id {
         public static final int LinearLayout01=0x7f060006;
